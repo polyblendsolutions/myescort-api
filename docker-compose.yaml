@@ -1,0 +1,17 @@
+version: '3'
+services:
+    mongo:
+        container_name: mongo_db_laundry
+        image: mongo:latest
+        command: mongod --quiet --logpath /dev/null 
+        networks:
+            - mongo
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: root
+            MONGO_INITDB_DATABASE: laundry
+        ports:
+            - '27017:27017'
+networks:
+    mongo:
+        driver: bridge
