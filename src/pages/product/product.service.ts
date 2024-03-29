@@ -465,6 +465,8 @@ export class ProductService {
     }
 
     try {
+      aggregateStages[0]['$match']['createdAt'] = {}
+      aggregateStages[0]['$match']['createdAt']['$gte'] = new Date(new Date().getFullYear(), new Date().getMonth() - 1, new Date().getDate());
       // Main
       const dataAggregates = await this.productModel.aggregate(aggregateStages);
 
