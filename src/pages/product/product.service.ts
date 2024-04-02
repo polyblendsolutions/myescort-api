@@ -697,7 +697,7 @@ export class ProductService {
           finalData.slug = this.utilsService.transformToSlug(name, true);
           finalData.quantity = finalData.quantity ? finalData.quantity : 0;
         }
-        if(finalData['status'] === ListingStatus.PUBLISH){
+        if(finalData['status'] === ListingStatus.publish){
           finalData['publishDate'] = new Date();
         }
       await this.productModel.findByIdAndUpdate(id, {
