@@ -25,6 +25,9 @@ export class AddProductDto {
 
   @IsOptional()
   quantity: number;
+
+  @IsOptional()
+  publishDate: Date;
 }
 
 export class FilterProductDto {

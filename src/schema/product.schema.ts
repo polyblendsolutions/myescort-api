@@ -555,6 +555,9 @@ export const ProductSchema = new mongoose.Schema(
       type: Boolean,
       required: false,
     },
+    publishDate: {
+      type: Date
+    }
   },
   {
     versionKey: false,
