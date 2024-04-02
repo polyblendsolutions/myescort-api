@@ -317,9 +317,9 @@ export class ProductService {
     } else {
       mSort = { createdAt: -1 };
     }
-    select.publishDate = 1
     // Select
     if (select) {
+      select.publishDate = 1;
       mSelect = { ...select };
     } else {
       mSelect = { name: 1 };
