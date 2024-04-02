@@ -89,6 +89,7 @@ export class ProductService {
     try {
       const fData = await this.productModel.findOne({
         'user._id': user._id,
+        status: "publish"
       });
       if (fData) {
         return {
@@ -303,6 +304,10 @@ export class ProductService {
             $or: [
               { name: new RegExp(searchQuery, 'i') },
               { 'category.name': new RegExp(searchQuery, 'i') },
+              { 'division.name': new RegExp(searchQuery, 'i') },
+              { 'region.name': new RegExp(searchQuery, 'i') },
+              { 'area.name': new RegExp(searchQuery, 'i') },
+              { 'age': new RegExp(searchQuery, 'i') },
             ],
           },
         ],
