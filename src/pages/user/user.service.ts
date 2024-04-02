@@ -705,7 +705,7 @@ export class UserService {
     id: string,
     updateUserDto: UpdateUserDto,
   ): Promise<ResponsePayload> {
-    const { newPassword, username } = updateUserDto;
+    const { newPassword, username, isVerfied, comment } = updateUserDto;
     let user;
     try {
       user = await this.userModel.findById(id);
@@ -743,6 +743,17 @@ export class UserService {
           success: true,
           message: 'Data & Password changed success',
         } as ResponsePayload;
+      }
+
+      //check isVerified
+      if(isVerfied || (!isVerfied && comment)) {
+        await this.emailService.sendEmail(
+          user['email'],
+          `
+            <h5>Profile Verification</h5>
+            <p>Hi! Your profile is ${isVerfied ? "verified": `not verified as ${comment}`}.</p>
+          `,
+        );
       }
       // Delete No Action Data
       delete updateUserDto.password;
