@@ -24,6 +24,7 @@ import {
 } from '../../dto/product.dto';
 import { Cache } from 'cache-manager';
 import { User } from '../../interfaces/user/user.interface';
+import { ListingStatus } from 'src/enum/listing-status.enum';
 
 const ObjectId = Types.ObjectId;
 
@@ -89,6 +90,7 @@ export class ProductService {
     try {
       const fData = await this.productModel.findOne({
         'user._id': user._id,
+        publishDate: {$gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, new Date().getDate())}
       });
       if (fData) {
         return {
@@ -104,7 +106,7 @@ export class ProductService {
           quantity: quantity ? quantity : 0,
           user: fUser,
         };
-        const mData = { ...addProductDto, ...defaultData };
+        const mData = { ...addProductDto, ...defaultData, publishDate: new Date() };
         const newData = new this.productModel(mData);
         console.log('mdar', newData);
 
@@ -315,10 +317,9 @@ export class ProductService {
     } else {
       mSort = { createdAt: -1 };
     }
-
     // Select
     if (select) {
-      mSelect = { ...select };
+      mSelect = { ...select, publishDate: 1 };
     } else {
       mSelect = { name: 1 };
     }
@@ -465,8 +466,8 @@ export class ProductService {
     }
 
     try {
-      aggregateStages[0]['$match']['createdAt'] = {}
-      aggregateStages[0]['$match']['createdAt']['$gte'] = new Date(new Date().getFullYear(), new Date().getMonth() - 1, new Date().getDate());
+      aggregateStages[0]['$match']['publishDate'] = {}
+      aggregateStages[0]['$match']['publishDate']['$gte'] = new Date(new Date().getFullYear(), new Date().getMonth() - 1, new Date().getDate());
       // Main
       const dataAggregates = await this.productModel.aggregate(aggregateStages);
 
@@ -696,7 +697,9 @@ export class ProductService {
           finalData.slug = this.utilsService.transformToSlug(name, true);
           finalData.quantity = finalData.quantity ? finalData.quantity : 0;
         }
-
+        if(finalData['status'] === ListingStatus.publish){
+          finalData['publishDate'] = new Date();
+        }
       await this.productModel.findByIdAndUpdate(id, {
         $set: finalData,
       });
