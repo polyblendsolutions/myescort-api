@@ -24,6 +24,7 @@ import {
 } from '../../dto/product.dto';
 import { Cache } from 'cache-manager';
 import { User } from '../../interfaces/user/user.interface';
+import { ListingStatus } from 'src/enum/listing-status.enum';
 
 const ObjectId = Types.ObjectId;
 
@@ -105,8 +106,7 @@ export class ProductService {
           quantity: quantity ? quantity : 0,
           user: fUser,
         };
-        const mData = { ...addProductDto, ...defaultData };
-        mData.publishDate = new Date();
+        const mData = { ...addProductDto, ...defaultData, publishDate: new Date() };
         const newData = new this.productModel(mData);
         console.log('mdar', newData);
 
@@ -319,8 +319,7 @@ export class ProductService {
     }
     // Select
     if (select) {
-      select.publishDate = 1;
-      mSelect = { ...select };
+      mSelect = { ...select, publishDate: 1 };
     } else {
       mSelect = { name: 1 };
     }
@@ -698,7 +697,7 @@ export class ProductService {
           finalData.slug = this.utilsService.transformToSlug(name, true);
           finalData.quantity = finalData.quantity ? finalData.quantity : 0;
         }
-        if(finalData['status'] === 'publish'){
+        if(finalData['status'] === ListingStatus.PUBLISH){
           finalData['publishDate'] = new Date();
         }
       await this.productModel.findByIdAndUpdate(id, {
