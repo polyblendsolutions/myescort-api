@@ -90,6 +90,7 @@ export class ProductService {
     try {
       const fData = await this.productModel.findOne({
         'user._id': user._id,
+        status: "publish",
         publishDate: {$gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, new Date().getDate())}
       });
       if (fData) {
@@ -304,7 +305,24 @@ export class ProductService {
           {
             $or: [
               { name: new RegExp(searchQuery, 'i') },
+              { email: new RegExp(searchQuery, 'i') },
+              { slug: new RegExp(searchQuery, 'i') },
               { 'category.name': new RegExp(searchQuery, 'i') },
+              { 'type.name': new RegExp(searchQuery, 'i') },
+              { 'division.name': new RegExp(searchQuery, 'i') },
+              { 'zone.name': new RegExp(searchQuery, 'i') },
+              { 'area.name': new RegExp(searchQuery, 'i') },
+              { 'age': new RegExp(searchQuery, 'i') },
+              { 'height': new RegExp(searchQuery, 'i') },
+              { 'weight': new RegExp(searchQuery, 'i') },
+              { 'bodyType.name': new RegExp(searchQuery, 'i') },
+              { 'shortDescription': new RegExp(searchQuery, 'i') },
+              { 'address': new RegExp(searchQuery, 'i') },
+              { 'hairColor.name': new RegExp(searchQuery, 'i') },
+              { 'orientation.name': new RegExp(searchQuery, 'i') },
+              { 'intimateHair.name': new RegExp(searchQuery, 'i') },
+              { 'phone': new RegExp(searchQuery, 'i') },
+              { 'whatsApp': new RegExp(searchQuery, 'i') },
             ],
           },
         ],
