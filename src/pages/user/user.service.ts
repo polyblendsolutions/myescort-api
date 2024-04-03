@@ -745,13 +745,27 @@ export class UserService {
         } as ResponsePayload;
       }
 
-      //check isVerified
-      if(isVerfied || (!isVerfied && comment)) {
+      //check isVerified  
+      if((isVerfied=='Approved') || (isVerfied=='Pending') || (isVerfied=='Rejected' && comment) || (!isVerfied && comment)) {
+        // if(isVerfied || (!isVerfied && comment)) {
+        // await this.emailService.sendEmail(
+        //   user['email'],
+        //   `
+        //     <h5>Profile Verification</h5>
+        //     <p>Hi! Your profile is ${isVerfied ? "verified": `not verified as ${comment}`}.</p>
+        //   `,
+        // );
+        // <p>Hi! Your profile is ${(isVerfied=="Approved") ? "verified" : (isVerfied =="Pending") ? "Pending" : (isVerfied=="Rejected" && comment) ?`not verified as ${comment}`}.</p>
+
         await this.emailService.sendEmail(
           user['email'],
           `
-            <h5>Profile Verification</h5>
-            <p>Hi! Your profile is ${isVerfied ? "verified": `not verified as ${comment}`}.</p>
+          <h5>Profile Verification</h5>
+          <p>Hi! ${
+              isVerfied == "Approved" ? "Your profile is verified" :
+              isVerfied == "Pending" ? "Your profile is in pending stage" :
+              isVerfied == "Rejected" && comment ? `Your profile is not verified as ${comment}` : "Before you start, please verify your profile for security."
+          }.</p>
           `,
         );
       }

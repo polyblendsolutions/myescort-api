@@ -177,8 +177,14 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsNotEmpty()
-  @IsBoolean()
-  isVerfied: boolean;
+  @IsString()
+  @MinLength(5)
+  @MaxLength(20)
+  isVerfied: string;
+  // @IsOptional()
+  // @IsNotEmpty()
+  // @IsBoolean()
+  // isVerfied: boolean;
 
   @IsOptional()
   @IsOptional()
