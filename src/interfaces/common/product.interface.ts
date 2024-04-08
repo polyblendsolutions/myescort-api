@@ -76,6 +76,7 @@ export interface Product {
   discountEndDateTime?: Date;
   createdAt?: Date;
   updatedAt?: Date;
+  publishDate?: Date;
   select?: boolean;
   mondayHours?: { startHour?: string; endHour?: string }[];
   tuesdayHours?: { startHour?: string; endHour?: string }[];
