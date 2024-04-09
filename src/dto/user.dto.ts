@@ -175,12 +175,6 @@ export class UpdateUserDto {
   @MaxLength(20)
   newPassword: string;
 
-  // @IsOptional()
-  // @IsNotEmpty()
-  // @IsString()
-  // @MinLength(5)
-  // @MaxLength(20)
-  // isVerfied: string;
   @IsOptional()
   @IsNotEmpty()
   @IsBoolean()
