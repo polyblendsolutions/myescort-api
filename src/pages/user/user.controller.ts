@@ -22,6 +22,7 @@ import { ResponsePayload } from '../../interfaces/core/response-payload.interfac
 import {
   AuthUserDto,
   CheckUserDto,
+  CheckNewEmailDto,
   CheckUserRegistrationDto,
   CreateSocialUserDto,
   CreateUserDto,
@@ -193,6 +194,15 @@ export class UserController {
     @Body() checkUserDto: CheckUserDto,
   ): Promise<ResponsePayload> {
     return await this.usersService.checkUserAndSentOtp(checkUserDto);
+  }
+
+  @Version(VERSION_NEUTRAL)
+  @Post('/check-new-email-and-sent-otp')
+  @UsePipes(ValidationPipe)
+  async checkNewEmailAndSentOtp(
+    @Body() CheckNewEmailDto: CheckNewEmailDto,
+  ): Promise<ResponsePayload> {
+    return await this.usersService.checkNewWEmailAndSentOtp(CheckNewEmailDto);
   }
 
   @Version(VERSION_NEUTRAL)

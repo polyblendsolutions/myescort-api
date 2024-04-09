@@ -245,3 +245,13 @@ export class CheckUserDto {
   @IsString()
   username: string;
 }
+
+export class CheckNewEmailDto {
+  @IsNotEmpty()
+  @IsString()
+  email: string;
+
+  @IsNotEmpty()
+  @IsString()
+  newEmail: string;
+}

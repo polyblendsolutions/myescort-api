@@ -25,6 +25,7 @@ import {
   AuthSocialUserDto,
   AuthUserDto,
   CheckUserDto,
+  CheckNewEmailDto,
   CheckUserRegistrationDto,
   CreateSocialUserDto,
   CreateUserDto,
@@ -664,6 +665,33 @@ export class UserService {
         } as ResponsePayload;
       }
 
+    } catch (err) {
+      console.log(err);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async checkNewWEmailAndSentOtp(
+    checkUserDto: CheckNewEmailDto,
+  ): Promise<ResponsePayload> {
+    try {
+      const { email, newEmail } = checkUserDto;
+      const user = await this.userModel.findOne({ email });
+      if (!user) {
+        return {
+          success: false,
+          message: 'Sorry! This email is not registered.',
+        } as ResponsePayload;
+        
+      }
+      const newEmailExist = await this.userModel.findOne({ email: newEmail });
+      if(newEmailExist) {
+        return {
+          success: false,
+          message: 'Sorry! This email is already registered.',
+        } as ResponsePayload;
+      }
+      return this.otpService.generateOtpWithEmail({ email: newEmail });
     } catch (err) {
       console.log(err);
       throw new InternalServerErrorException();
