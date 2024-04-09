@@ -88,6 +88,11 @@ export const UserSchema = new mongoose.Schema(
       type: Boolean,
       required: false,
     },
+    verifiedStatus: {
+      type: Number,
+      required: false,
+      default: 0,     //0=> unverified, 1=> pending, 2=> verified, 3 => rejected
+    },
     varifiedImage:{
       type: String,
       required: false,
