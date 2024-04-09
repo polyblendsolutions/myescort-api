@@ -54,7 +54,7 @@ export class WishListService {
         });
         return {
           success: true,
-          message: 'WishList Item Updated Successfully!',
+          message: 'Varen er blevet opdateret i favoritterne med succes!',
         } as ResponsePayload;
       } else {
         const newData = new this.wishListModel(final);
@@ -71,7 +71,7 @@ export class WishListService {
 
         return {
           success: true,
-          message: 'Added to WishList Successfully!',
+          message: 'Varen er blevet tilføjet til favoritterne med succes!',
         } as ResponsePayload;
       }
     } catch (error) {
@@ -114,7 +114,7 @@ export class WishListService {
       }
       return {
         success: true,
-        message: 'Multiple Added to WishList Successfully!',
+        message: 'Mange tilføjet til favoritterne med succes!',
       } as ResponsePayload;
     } catch (error) {
       console.log(error);
@@ -158,7 +158,7 @@ export class WishListService {
 
       return {
         success: true,
-        message: 'Item Removed Successfully From WishList!',
+        message: 'Varen er blevet fjernet fra dine favoritter med succes!',
       } as ResponsePayload;
     } catch (err) {
       console.log(err);

@@ -90,7 +90,6 @@ export class ProductService {
     try {
       const fData = await this.productModel.findOne({
         'user._id': user._id,
-        status: "publish",
         publishDate: {$gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, new Date().getDate())}
       });
       if (fData) {
