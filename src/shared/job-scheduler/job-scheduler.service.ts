@@ -38,6 +38,11 @@ export class JobSchedulerService {
     });
   }
 
+  async subscriptionExpireNotification() {
+    schedule.scheduleJob('* * * * * *', async () => {
+      console.log('Subscription Expire Notification..');
+    });
+  }
   async addOfferScheduleOnStart(
     isNew: boolean,
     id: string,
