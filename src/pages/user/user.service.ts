@@ -671,7 +671,7 @@ export class UserService {
     }
   }
 
-  async checkNewWEmailAndSentOtp(
+  async checkNewEmailAndSentOtp(
     checkUserDto: CheckNewEmailDto,
   ): Promise<ResponsePayload> {
     try {

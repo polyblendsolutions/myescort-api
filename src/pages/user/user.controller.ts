@@ -200,9 +200,9 @@ export class UserController {
   @Post('/check-new-email-and-sent-otp')
   @UsePipes(ValidationPipe)
   async checkNewEmailAndSentOtp(
-    @Body() CheckNewEmailDto: CheckNewEmailDto,
+    @Body() checkNewEmailDto: CheckNewEmailDto,
   ): Promise<ResponsePayload> {
-    return await this.usersService.checkNewWEmailAndSentOtp(CheckNewEmailDto);
+    return await this.usersService.checkNewEmailAndSentOtp(checkNewEmailDto);
   }
 
   @Version(VERSION_NEUTRAL)
