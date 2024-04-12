@@ -90,7 +90,7 @@ export const ORDER_ITEM_SCHEMA = new mongoose.Schema(
       slug: {
         type: String,
       },
-    }, 
+    },
     brand: {
       _id: {
         type: Schema.Types.ObjectId,

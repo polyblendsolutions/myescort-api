@@ -7,5 +7,5 @@ export interface Carousel {
   url?: string;
   title?: string;
   createdAt?: Date;
-  updatedAt?: Date; 
+  updatedAt?: Date;
 }

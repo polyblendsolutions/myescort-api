@@ -14,13 +14,14 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { AdminMetaRoles } from '../../decorator/admin-roles.decorator';
-import { AdminRoles } from '../../enum/admin-roles.enum';
-import { AdminRolesGuard } from '../../guards/admin-roles.guard';
+import { GetAdmin } from 'src/decorator/get-admin.decorator';
+import { Admin } from 'src/interfaces/admin/admin.interface';
+
+import { VerifiedService } from './verified.service';
 import { AdminMetaPermissions } from '../../decorator/admin-permissions.decorator';
-import { AdminPermissions } from '../../enum/admin-permission.enum';
-import { AdminPermissionGuard } from '../../guards/admin-permission.guard';
-import { AdminJwtAuthGuard } from '../../guards/admin-jwt-auth.guard';
+import { AdminMetaRoles } from '../../decorator/admin-roles.decorator';
+import { GetUser } from '../../decorator/get-user.decorator';
+import { FilterAndPaginationProductDto, GetProductByIdsDto } from '../../dto/product.dto';
 import {
   AddVerifiedDto,
   FilterAndPaginationVerifiedDto,
@@ -28,18 +29,15 @@ import {
   OptionVerifiedDto,
   UpdateVerifiedDto,
 } from '../../dto/verified.dto';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
-import { MongoIdValidationPipe } from '../../pipes/mongo-id-validation.pipe';
-import { VerifiedService } from './verified.service';
-import { GetUser } from '../../decorator/get-user.decorator';
-import { User } from '../../interfaces/user/user.interface';
+import { AdminPermissions } from '../../enum/admin-permission.enum';
+import { AdminRoles } from '../../enum/admin-roles.enum';
+import { AdminJwtAuthGuard } from '../../guards/admin-jwt-auth.guard';
+import { AdminPermissionGuard } from '../../guards/admin-permission.guard';
+import { AdminRolesGuard } from '../../guards/admin-roles.guard';
 import { UserJwtAuthGuard } from '../../guards/user-jwt-auth.guard';
-import {
-  FilterAndPaginationProductDto,
-  GetProductByIdsDto,
-} from '../../dto/product.dto';
-import { GetAdmin } from 'src/decorator/get-admin.decorator';
-import { Admin } from 'src/interfaces/admin/admin.interface';
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
+import { User } from '../../interfaces/user/user.interface';
+import { MongoIdValidationPipe } from '../../pipes/mongo-id-validation.pipe';
 
 @Controller('verified')
 export class VerifiedController {
@@ -50,6 +48,9 @@ export class VerifiedController {
   /**
    * addVerified
    * insertManyVerified
+   *
+   * @param user
+   * @param addVerifiedDto
    */
   @Post('/add')
   // @UsePipes(ValidationPipe)
@@ -96,10 +97,7 @@ export class VerifiedController {
     @Body() filterVerifiedDto: FilterAndPaginationVerifiedDto,
     @Query('q') searchString: string,
   ): Promise<ResponsePayload> {
-    return this.verifiedService.getAllVerifiedsByQuery(
-      filterVerifiedDto,
-      searchString,
-    );
+    return this.verifiedService.getAllVerifiedsByQuery(filterVerifiedDto, searchString);
   }
 
   @Version(VERSION_NEUTRAL)
@@ -114,6 +112,9 @@ export class VerifiedController {
   /**
    * updateVerifiedById
    * updateMultipleVerifiedById
+   *
+   * @param id
+   * @param updateVerifiedDto
    */
   @Version(VERSION_NEUTRAL)
   @Put('/update/:id')
@@ -134,6 +135,8 @@ export class VerifiedController {
   /**
    * deleteVerifiedById
    * deleteMultipleVerifiedById
+   *
+   * @param id
    */
   @Version(VERSION_NEUTRAL)
   @Delete('/delete/:id')
@@ -143,9 +146,7 @@ export class VerifiedController {
   // @AdminMetaPermissions(AdminPermissions.DELETE)
   // @UseGuards(AdminPermissionGuard)
   // @UseGuards(AdminJwtAuthGuard)
-  async deleteVerifiedById(
-    @Param('id', MongoIdValidationPipe) id: string,
-  ): Promise<ResponsePayload> {
+  async deleteVerifiedById(@Param('id', MongoIdValidationPipe) id: string): Promise<ResponsePayload> {
     return await this.verifiedService.deleteVerifiedById(id);
   }
 
@@ -161,9 +162,6 @@ export class VerifiedController {
     @Body() data: { ids: string[] },
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.verifiedService.deleteMultipleVerifiedById(
-      data.ids,
-      Boolean(checkUsage),
-    );
+    return await this.verifiedService.deleteMultipleVerifiedById(data.ids, Boolean(checkUsage));
   }
 }

@@ -1,23 +1,15 @@
-import { Admin } from './../../interfaces/admin/admin.interface';
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../shared/utils/utils.service';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../enum/error-code.enum';
-import {
-  AddVerifiedDto,
-  FilterAndPaginationVerifiedDto,
-  UpdateVerifiedDto,
-} from '../../dto/verified.dto';
 import { Verified } from 'src/interfaces/common/verified.interface';
+
+import { Admin } from './../../interfaces/admin/admin.interface';
+import { AddVerifiedDto, FilterAndPaginationVerifiedDto, UpdateVerifiedDto } from '../../dto/verified.dto';
+import { ErrorCodes } from '../../enum/error-code.enum';
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 import { User } from '../../interfaces/user/user.interface';
+import { UtilsService } from '../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -36,11 +28,11 @@ export class VerifiedService {
   /**
    * addVerified
    * insertManyVerified
+   *
+   * @param user
+   * @param addVerifiedDto
    */
-  async addVerified(
-    user: User,
-    addVerifiedDto: AddVerifiedDto,
-  ): Promise<ResponsePayload> {
+  async addVerified(user: User, addVerifiedDto: AddVerifiedDto): Promise<ResponsePayload> {
     try {
       // const productData = await this.productModel
       //   .findById({ _id: addVerifiedDto.product })
@@ -87,10 +79,7 @@ export class VerifiedService {
     }
   }
 
-  async addVerifiedByAdmin(
-    admin: Admin,
-    addVerifiedDto: AddVerifiedDto,
-  ): Promise<ResponsePayload> {
+  async addVerifiedByAdmin(admin: Admin, addVerifiedDto: AddVerifiedDto): Promise<ResponsePayload> {
     try {
       // const productData = await this.productModel
       //   .findById({ _id: addVerifiedDto.product })
@@ -248,9 +237,7 @@ export class VerifiedService {
     }
 
     try {
-      const dataAggregates = await this.verifiedModel.aggregate(
-        aggregateStages,
-      );
+      const dataAggregates = await this.verifiedModel.aggregate(aggregateStages);
       // .populate('user', 'fullName profileImg username')
       //     .populate('product', 'productName productSlug images categorySlug')
       //     .sort({createdAt: -1})
@@ -315,16 +302,13 @@ export class VerifiedService {
   /**
    * updateVerifiedById
    * updateMultipleVerifiedById
+   *
+   * @param id
+   * @param updateVerifiedDto
    */
-  async updateVerifiedById(
-    id: string,
-    updateVerifiedDto: UpdateVerifiedDto,
-  ): Promise<ResponsePayload> {
+  async updateVerifiedById(id: string, updateVerifiedDto: UpdateVerifiedDto): Promise<ResponsePayload> {
     try {
-      await this.verifiedModel.updateOne(
-        { _id: id },
-        { $set: updateVerifiedDto },
-      );
+      await this.verifiedModel.updateOne({ _id: id }, { $set: updateVerifiedDto });
       return {
         success: true,
         message: 'Update Successfull',
@@ -338,6 +322,8 @@ export class VerifiedService {
   /**
    * deleteVerifiedById
    * deleteMultipleVerifiedById
+   *
+   * @param id
    */
   async deleteVerifiedById(id: string): Promise<ResponsePayload> {
     try {
@@ -351,10 +337,7 @@ export class VerifiedService {
     }
   }
 
-  async deleteMultipleVerifiedById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleVerifiedById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       await this.verifiedModel.deleteMany({ _id: mIds });

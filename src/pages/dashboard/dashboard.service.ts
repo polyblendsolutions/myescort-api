@@ -1,20 +1,16 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../shared/utils/utils.service';
-import { Order } from '../../interfaces/common/order.interface';
-import { Admin } from '../../interfaces/admin/admin.interface';
-import { User } from '../../interfaces/user/user.interface';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
-import { Product } from '../../interfaces/common/product.interface';
+
 import { FilterAndPaginationOrderDto } from '../../dto/order.dto';
 import { ErrorCodes } from '../../enum/error-code.enum';
+import { Admin } from '../../interfaces/admin/admin.interface';
+import { Order } from '../../interfaces/common/order.interface';
+import { Product } from '../../interfaces/common/product.interface';
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
+import { User } from '../../interfaces/user/user.interface';
+import { UtilsService } from '../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -35,10 +31,7 @@ export class DashboardService {
     private utilsService: UtilsService,
   ) {}
 
-  async getAdminDashboard(
-    filterOrderDto: FilterAndPaginationOrderDto,
-    searchQuery?: string,
-  ): Promise<ResponsePayload> {
+  async getAdminDashboard(filterOrderDto: FilterAndPaginationOrderDto, searchQuery?: string): Promise<ResponsePayload> {
     const { filter } = filterOrderDto;
     try {
       const today = this.utilsService.getDateString(new Date());
@@ -181,9 +174,7 @@ export class DashboardService {
         },
       };
       aggregateStagesCalculation.push(group);
-      const calculateAggregates = await this.orderModel.aggregate(
-        aggregateStagesCalculation,
-      );
+      const calculateAggregates = await this.orderModel.aggregate(aggregateStagesCalculation);
 
       return {
         // data: dataAggregates,

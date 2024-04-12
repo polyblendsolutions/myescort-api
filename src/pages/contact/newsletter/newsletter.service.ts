@@ -8,15 +8,16 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Newsletter } from '../../../interfaces/common/newsletter.interface';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../../enum/error-code.enum';
+
 import {
   AddNewsletterDto,
   FilterAndPaginationNewsletterDto,
   OptionNewsletterDto,
   UpdateNewsletterDto,
 } from '../../../dto/newsletter.dto';
+import { ErrorCodes } from '../../../enum/error-code.enum';
+import { Newsletter } from '../../../interfaces/common/newsletter.interface';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 
 const ObjectId = Types.ObjectId;
 
@@ -32,10 +33,10 @@ export class NewsletterService {
   /**
    * addNewsletter
    * insertManyNewsletter
+   *
+   * @param addNewsletterDto
    */
-  async addNewsletter(
-    addNewsletterDto: AddNewsletterDto,
-  ): Promise<ResponsePayload> {
+  async addNewsletter(addNewsletterDto: AddNewsletterDto): Promise<ResponsePayload> {
     const newData = new this.newsletterModel(addNewsletterDto);
     try {
       const saveData = await newData.save();
@@ -70,9 +71,7 @@ export class NewsletterService {
       const saveData = await this.newsletterModel.insertMany(addNewslettersDto);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       // console.log(error);
@@ -200,9 +199,7 @@ export class NewsletterService {
     }
 
     try {
-      const dataAggregates = await this.newsletterModel.aggregate(
-        aggregateSnewsletteres,
-      );
+      const dataAggregates = await this.newsletterModel.aggregate(aggregateSnewsletteres);
       if (pagination) {
         return {
           ...{ ...dataAggregates[0] },
@@ -226,10 +223,7 @@ export class NewsletterService {
     }
   }
 
-  async getNewsletterById(
-    id: string,
-    select: string,
-  ): Promise<ResponsePayload> {
+  async getNewsletterById(id: string, select: string): Promise<ResponsePayload> {
     try {
       const data = await this.newsletterModel.findById(id).select(select);
       return {
@@ -245,11 +239,11 @@ export class NewsletterService {
   /**
    * updateNewsletterById
    * updateMultipleNewsletterById
+   *
+   * @param id
+   * @param updateNewsletterDto
    */
-  async updateNewsletterById(
-    id: string,
-    updateNewsletterDto: UpdateNewsletterDto,
-  ): Promise<ResponsePayload> {
+  async updateNewsletterById(id: string, updateNewsletterDto: UpdateNewsletterDto): Promise<ResponsePayload> {
     const { name } = updateNewsletterDto;
     let data;
     try {
@@ -282,10 +276,7 @@ export class NewsletterService {
     const mIds = ids.map((m) => new ObjectId(m));
 
     try {
-      await this.newsletterModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateNewsletterDto },
-      );
+      await this.newsletterModel.updateMany({ _id: { $in: mIds } }, { $set: updateNewsletterDto });
 
       return {
         success: true,
@@ -299,11 +290,11 @@ export class NewsletterService {
   /**
    * deleteNewsletterById
    * deleteMultipleNewsletterById
+   *
+   * @param id
+   * @param checkUsage
    */
-  async deleteNewsletterById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteNewsletterById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.newsletterModel.findById(id);
@@ -324,10 +315,7 @@ export class NewsletterService {
     }
   }
 
-  async deleteMultipleNewsletterById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleNewsletterById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       await this.newsletterModel.deleteMany({ _id: ids });

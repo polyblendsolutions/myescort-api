@@ -6,19 +6,20 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../shared/utils/utils.service';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../enum/error-code.enum';
+
 import {
   AddFileFolderDto,
   FilterAndPaginationFileFolderDto,
   OptionFileFolderDto,
   UpdateFileFolderDto,
 } from '../../dto/file-folder.dto';
+import { ErrorCodes } from '../../enum/error-code.enum';
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 import { FileFolder } from '../../interfaces/gallery/file-folder.interface';
+import { UtilsService } from '../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -36,10 +37,10 @@ export class FileFolderService {
   /**
    * addFileFolder
    * insertManyFileFolder
+   *
+   * @param addFileFolderDto
    */
-  async addFileFolder(
-    addFileFolderDto: AddFileFolderDto,
-  ): Promise<ResponsePayload> {
+  async addFileFolder(addFileFolderDto: AddFileFolderDto): Promise<ResponsePayload> {
     const { name } = addFileFolderDto;
 
     const defaultData = {
@@ -87,9 +88,7 @@ export class FileFolderService {
       const saveData = await this.fileFolderModel.insertMany(mData);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       // console.log(error);
@@ -104,6 +103,9 @@ export class FileFolderService {
   /**
    * getAllFileFolders
    * getFileFolderById
+   *
+   * @param filterFileFolderDto
+   * @param searchQuery
    */
   async getAllFileFolders(
     filterFileFolderDto: FilterAndPaginationFileFolderDto,
@@ -195,9 +197,7 @@ export class FileFolderService {
     }
 
     try {
-      const dataAggregates = await this.fileFolderModel.aggregate(
-        aggregateStages,
-      );
+      const dataAggregates = await this.fileFolderModel.aggregate(aggregateStages);
       if (pagination) {
         return {
           ...{ ...dataAggregates[0] },
@@ -221,10 +221,7 @@ export class FileFolderService {
     }
   }
 
-  async getFileFolderById(
-    id: string,
-    select: string,
-  ): Promise<ResponsePayload> {
+  async getFileFolderById(id: string, select: string): Promise<ResponsePayload> {
     try {
       const data = await this.fileFolderModel.findById(id).select(select);
       return {
@@ -240,11 +237,11 @@ export class FileFolderService {
   /**
    * updateFileFolderById
    * updateMultipleFileFolderById
+   *
+   * @param id
+   * @param updateFileFolderDto
    */
-  async updateFileFolderById(
-    id: string,
-    updateFileFolderDto: UpdateFileFolderDto,
-  ): Promise<ResponsePayload> {
+  async updateFileFolderById(id: string, updateFileFolderDto: UpdateFileFolderDto): Promise<ResponsePayload> {
     const { name } = updateFileFolderDto;
     let data;
     try {
@@ -287,10 +284,7 @@ export class FileFolderService {
     }
 
     try {
-      await this.fileFolderModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateFileFolderDto },
-      );
+      await this.fileFolderModel.updateMany({ _id: { $in: mIds } }, { $set: updateFileFolderDto });
 
       return {
         success: true,
@@ -304,6 +298,8 @@ export class FileFolderService {
   /**
    * deleteFileFolderById
    * deleteMultipleFileFolderById
+   *
+   * @param id
    */
   async deleteFileFolderById(id: string): Promise<ResponsePayload> {
     let data;

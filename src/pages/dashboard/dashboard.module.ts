@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
-import { DashboardService } from './dashboard.service';
-import { DashboardController } from './dashboard.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UserSchema } from '../../schema/user.schema';
+
+import { DashboardController } from './dashboard.controller';
+import { DashboardService } from './dashboard.service';
 import { AdminSchema } from '../../schema/admin.schema';
-import { ProductSchema } from '../../schema/product.schema';
 import { OrderSchema } from '../../schema/order.schema';
+import { ProductSchema } from '../../schema/product.schema';
+import { UserSchema } from '../../schema/user.schema';
 
 @Module({
   imports: [

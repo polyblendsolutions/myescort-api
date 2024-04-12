@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsIn,
@@ -12,9 +13,9 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
-import { GenderTypes } from '../enum/gender-types.enum';
-import { Type } from 'class-transformer';
+
 import { PaginationDto } from './pagination.dto';
+import { GenderTypes } from '../enum/gender-types.enum';
 
 export class CreateUserDto {
   @IsOptional()

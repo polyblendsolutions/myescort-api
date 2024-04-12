@@ -1,17 +1,13 @@
-import {
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../../shared/utils/utils.service';
+
+import { AddShippingChargeDto } from '../../../dto/shipping-charge.dto';
+import { ErrorCodes } from '../../../enum/error-code.enum';
 import { ShippingCharge } from '../../../interfaces/common/shipping-charge.interface';
 import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../../enum/error-code.enum';
-import { AddShippingChargeDto } from '../../../dto/shipping-charge.dto';
+import { UtilsService } from '../../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -29,19 +25,16 @@ export class ShippingChargeService {
   /**
    * addShippingCharge
    * insertManyShippingCharge
+   *
+   * @param addShippingChargeDto
    */
-  async addShippingCharge(
-    addShippingChargeDto: AddShippingChargeDto,
-  ): Promise<ResponsePayload> {
+  async addShippingCharge(addShippingChargeDto: AddShippingChargeDto): Promise<ResponsePayload> {
     try {
       const shippingChargeData = await this.shippingChargeModel.findOne();
       if (shippingChargeData) {
-        await this.shippingChargeModel.findByIdAndUpdate(
-          shippingChargeData._id,
-          {
-            $set: addShippingChargeDto,
-          },
-        );
+        await this.shippingChargeModel.findByIdAndUpdate(shippingChargeData._id, {
+          $set: addShippingChargeDto,
+        });
         const data = {
           _id: shippingChargeData._id,
         };

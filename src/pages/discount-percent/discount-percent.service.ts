@@ -6,20 +6,21 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../shared/utils/utils.service';
-import { DiscountPercent } from '../../interfaces/common/discount-percent.interface';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../enum/error-code.enum';
+
 import {
   AddDiscountPercentDto,
   FilterAndPaginationDiscountPercentDto,
   OptionDiscountPercentDto,
   UpdateDiscountPercentDto,
 } from '../../dto/discount-percent.dto';
+import { ErrorCodes } from '../../enum/error-code.enum';
+import { DiscountPercent } from '../../interfaces/common/discount-percent.interface';
 import { Product } from '../../interfaces/common/product.interface';
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
+import { UtilsService } from '../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -28,7 +29,8 @@ export class DiscountPercentService {
   private logger = new Logger(DiscountPercentService.name);
 
   constructor(
-    @InjectModel('DiscountPercent') private readonly discountPercentModel: Model<DiscountPercent>,
+    @InjectModel('DiscountPercent')
+    private readonly discountPercentModel: Model<DiscountPercent>,
     @InjectModel('Product') private readonly productModel: Model<Product>,
     private configService: ConfigService,
     private utilsService: UtilsService,
@@ -37,6 +39,8 @@ export class DiscountPercentService {
   /**
    * addDiscountPercent
    * insertManyDiscountPercent
+   *
+   * @param addDiscountPercentDto
    */
   async addDiscountPercent(addDiscountPercentDto: AddDiscountPercentDto): Promise<ResponsePayload> {
     const { discountType } = addDiscountPercentDto;
@@ -86,9 +90,7 @@ export class DiscountPercentService {
       const saveData = await this.discountPercentModel.insertMany(mData);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       // console.log(error);
@@ -103,6 +105,9 @@ export class DiscountPercentService {
   /**
    * getAllDiscountPercents
    * getDiscountPercentById
+   *
+   * @param filterDiscountPercentDto
+   * @param searchQuery
    */
   async getAllDiscountPercents(
     filterDiscountPercentDto: FilterAndPaginationDiscountPercentDto,
@@ -125,7 +130,10 @@ export class DiscountPercentService {
       mFilter = { ...mFilter, ...filter };
     }
     if (searchQuery) {
-      mFilter = { ...mFilter, ...{ discountType: new RegExp(searchQuery, 'i') } };
+      mFilter = {
+        ...mFilter,
+        ...{ discountType: new RegExp(searchQuery, 'i') },
+      };
     }
     // Sort
     if (sort) {
@@ -234,6 +242,9 @@ export class DiscountPercentService {
   /**
    * updateDiscountPercentById
    * updateMultipleDiscountPercentById
+   *
+   * @param id
+   * @param updateDiscountPercentDto
    */
   async updateDiscountPercentById(
     id: string,
@@ -281,10 +292,7 @@ export class DiscountPercentService {
     }
 
     try {
-      await this.discountPercentModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateDiscountPercentDto },
-      );
+      await this.discountPercentModel.updateMany({ _id: { $in: mIds } }, { $set: updateDiscountPercentDto });
 
       return {
         success: true,
@@ -298,11 +306,11 @@ export class DiscountPercentService {
   /**
    * deleteDiscountPercentById
    * deleteMultipleDiscountPercentById
+   *
+   * @param id
+   * @param checkUsage
    */
-  async deleteDiscountPercentById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteDiscountPercentById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.discountPercentModel.findById(id);
@@ -330,10 +338,7 @@ export class DiscountPercentService {
           },
         };
         // Update Product
-        await this.productModel.updateMany(
-          { 'discountPercent._id': new ObjectId(id) },
-          { $set: resetDiscountPercent },
-        );
+        await this.productModel.updateMany({ 'discountPercent._id': new ObjectId(id) }, { $set: resetDiscountPercent });
       }
       return {
         success: true,
@@ -344,19 +349,14 @@ export class DiscountPercentService {
     }
   }
 
-  async deleteMultipleDiscountPercentById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleDiscountPercentById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       // Remove Read Only Data
       const allCategory = await this.discountPercentModel.find({
         _id: { $in: mIds },
       });
-      const filteredIds = allCategory
-        .filter((f) => f.readOnly !== true)
-        .map((m) => m._id);
+      const filteredIds = allCategory.filter((f) => f.readOnly !== true).map((m) => m._id);
       await this.discountPercentModel.deleteMany({ _id: filteredIds });
       // Reset Product DiscountPercent Reference
       if (checkUsage) {
@@ -371,10 +371,7 @@ export class DiscountPercentService {
           },
         };
         // Update Product
-        await this.productModel.updateMany(
-          { 'discountPercent._id': { $in: mIds } },
-          { $set: resetDiscountPercent },
-        );
+        await this.productModel.updateMany({ 'discountPercent._id': { $in: mIds } }, { $set: resetDiscountPercent });
       }
       return {
         success: true,

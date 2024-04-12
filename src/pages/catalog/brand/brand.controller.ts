@@ -14,22 +14,18 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
-import { AdminRoles } from '../../../enum/admin-roles.enum';
-import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
+
+import { BrandService } from './brand.service';
 import { AdminMetaPermissions } from '../../../decorator/admin-permissions.decorator';
+import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
+import { AddBrandDto, FilterAndPaginationBrandDto, OptionBrandDto, UpdateBrandDto } from '../../../dto/brand.dto';
 import { AdminPermissions } from '../../../enum/admin-permission.enum';
-import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
+import { AdminRoles } from '../../../enum/admin-roles.enum';
 import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
-import {
-  AddBrandDto,
-  FilterAndPaginationBrandDto,
-  OptionBrandDto,
-  UpdateBrandDto,
-} from '../../../dto/brand.dto';
+import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
+import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
 import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
-import { BrandService } from './brand.service';
 
 @Controller('brand')
 export class BrandController {
@@ -40,6 +36,8 @@ export class BrandController {
   /**
    * addBrand
    * insertManyBrand
+   *
+   * @param addBrandDto
    */
   @Post('/add')
   @UsePipes(ValidationPipe)
@@ -75,6 +73,9 @@ export class BrandController {
   /**
    * getAllBrands
    * getBrandById
+   *
+   * @param filterBrandDto
+   * @param searchString
    */
   @Version(VERSION_NEUTRAL)
   @Post('/get-all')
@@ -101,6 +102,9 @@ export class BrandController {
   /**
    * updateBrandById
    * updateMultipleBrandById
+   *
+   * @param id
+   * @param updateBrandDto
    */
   @Version(VERSION_NEUTRAL)
   @Put('/update/:id')
@@ -125,18 +129,16 @@ export class BrandController {
   @AdminMetaPermissions(AdminPermissions.EDIT)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async updateMultipleBrandById(
-    @Body() updateBrandDto: UpdateBrandDto,
-  ): Promise<ResponsePayload> {
-    return await this.brandService.updateMultipleBrandById(
-      updateBrandDto.ids,
-      updateBrandDto,
-    );
+  async updateMultipleBrandById(@Body() updateBrandDto: UpdateBrandDto): Promise<ResponsePayload> {
+    return await this.brandService.updateMultipleBrandById(updateBrandDto.ids, updateBrandDto);
   }
 
   /**
    * deleteBrandById
    * deleteMultipleBrandById
+   *
+   * @param id
+   * @param checkUsage
    */
   @Version(VERSION_NEUTRAL)
   @Delete('/delete/:id')
@@ -165,9 +167,6 @@ export class BrandController {
     @Body() data: { ids: string[] },
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.brandService.deleteMultipleBrandById(
-      data.ids,
-      Boolean(checkUsage),
-    );
+    return await this.brandService.deleteMultipleBrandById(data.ids, Boolean(checkUsage));
   }
 }

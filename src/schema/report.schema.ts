@@ -7,7 +7,7 @@ export const ReportSchema = new mongoose.Schema(
       _id: {
         type: Schema.Types.ObjectId,
         ref: 'User',
-        required:false,
+        required: false,
       },
       name: {
         type: String,
@@ -61,10 +61,10 @@ export const ReportSchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
-    priority:{
+    priority: {
       type: Number,
       required: false,
-    }
+    },
   },
   {
     timestamps: true,

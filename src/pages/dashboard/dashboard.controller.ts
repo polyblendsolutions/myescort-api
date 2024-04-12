@@ -11,14 +11,15 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
+
 import { DashboardService } from './dashboard.service';
-import { AdminRolesGuard } from '../../guards/admin-roles.guard';
-import { AdminRoles } from '../../enum/admin-roles.enum';
 import { AdminMetaRoles } from '../../decorator/admin-roles.decorator';
-import { AdminJwtAuthGuard } from '../../guards/admin-jwt-auth.guard';
 import { GetTokenUser } from '../../decorator/get-token-user.decorator';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 import { FilterAndPaginationOrderDto } from '../../dto/order.dto';
+import { AdminRoles } from '../../enum/admin-roles.enum';
+import { AdminJwtAuthGuard } from '../../guards/admin-jwt-auth.guard';
+import { AdminRolesGuard } from '../../guards/admin-roles.guard';
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 
 @Controller('dashboard')
 export class DashboardController {
@@ -40,10 +41,7 @@ export class DashboardController {
     @Body() filterOrderDto: FilterAndPaginationOrderDto,
     @Query('q') searchString: string,
   ): Promise<ResponsePayload> {
-    return await this.dashboardService.getAdminDashboard(
-      filterOrderDto,
-      searchString,
-    );
+    return await this.dashboardService.getAdminDashboard(filterOrderDto, searchString);
   }
 
   // @Version(VERSION_NEUTRAL)

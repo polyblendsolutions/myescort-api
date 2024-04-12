@@ -14,13 +14,11 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
-import { AdminRoles } from '../../../enum/admin-roles.enum';
-import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
+
+import { CouponService } from './coupon.service';
 import { AdminMetaPermissions } from '../../../decorator/admin-permissions.decorator';
-import { AdminPermissions } from '../../../enum/admin-permission.enum';
-import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
-import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
+import { GetTokenUser } from '../../../decorator/get-token-user.decorator';
 import {
   AddCouponDto,
   CheckCouponDto,
@@ -28,12 +26,15 @@ import {
   OptionCouponDto,
   UpdateCouponDto,
 } from '../../../dto/coupon.dto';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
-import { CouponService } from './coupon.service';
+import { AdminPermissions } from '../../../enum/admin-permission.enum';
+import { AdminRoles } from '../../../enum/admin-roles.enum';
+import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
+import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
 import { UserJwtAuthGuard } from '../../../guards/user-jwt-auth.guard';
-import { GetTokenUser } from '../../../decorator/get-token-user.decorator';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { User } from '../../../interfaces/user/user.interface';
+import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
 
 @Controller('coupon')
 export class CouponController {
@@ -44,6 +45,8 @@ export class CouponController {
   /**
    * addCoupon
    * insertManyCoupon
+   *
+   * @param addCouponDto
    */
   @Post('/add')
   @UsePipes(ValidationPipe)
@@ -79,6 +82,9 @@ export class CouponController {
   /**
    * getAllCoupons
    * getCouponById
+   *
+   * @param filterCouponDto
+   * @param searchString
    */
   @Version(VERSION_NEUTRAL)
   @Post('/get-all')
@@ -108,6 +114,9 @@ export class CouponController {
   /**
    * updateCouponById
    * updateMultipleCouponById
+   *
+   * @param id
+   * @param updateCouponDto
    */
   @Version(VERSION_NEUTRAL)
   @Put('/update/:id')
@@ -132,18 +141,16 @@ export class CouponController {
   @AdminMetaPermissions(AdminPermissions.EDIT)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async updateMultipleCouponById(
-    @Body() updateCouponDto: UpdateCouponDto,
-  ): Promise<ResponsePayload> {
-    return await this.couponService.updateMultipleCouponById(
-      updateCouponDto.ids,
-      updateCouponDto,
-    );
+  async updateMultipleCouponById(@Body() updateCouponDto: UpdateCouponDto): Promise<ResponsePayload> {
+    return await this.couponService.updateMultipleCouponById(updateCouponDto.ids, updateCouponDto);
   }
 
   /**
    * deleteCouponById
    * deleteMultipleCouponById
+   *
+   * @param id
+   * @param checkUsage
    */
   @Version(VERSION_NEUTRAL)
   @Delete('/delete/:id')
@@ -172,10 +179,7 @@ export class CouponController {
     @Body() data: { ids: string[] },
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.couponService.deleteMultipleCouponById(
-      data.ids,
-      Boolean(checkUsage),
-    );
+    return await this.couponService.deleteMultipleCouponById(data.ids, Boolean(checkUsage));
   }
 
   @Post('/check-coupon-availability')
@@ -185,9 +189,6 @@ export class CouponController {
     @GetTokenUser() user: User,
     @Body() checkCouponDto: CheckCouponDto,
   ): Promise<ResponsePayload> {
-    return await this.couponService.checkCouponAvailability(
-      user,
-      checkCouponDto,
-    );
+    return await this.couponService.checkCouponAvailability(user, checkCouponDto);
   }
 }

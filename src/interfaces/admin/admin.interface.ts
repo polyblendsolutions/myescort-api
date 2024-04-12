@@ -1,5 +1,5 @@
-import { AdminRoles } from '../../enum/admin-roles.enum';
 import { AdminPermissions } from '../../enum/admin-permission.enum';
+import { AdminRoles } from '../../enum/admin-roles.enum';
 
 export interface Admin {
   _id?: string;

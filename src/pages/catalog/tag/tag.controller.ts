@@ -14,22 +14,18 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
-import { AdminRoles } from '../../../enum/admin-roles.enum';
-import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
+
+import { TagService } from './tag.service';
 import { AdminMetaPermissions } from '../../../decorator/admin-permissions.decorator';
+import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
+import { AddTagDto, FilterAndPaginationTagDto, OptionTagDto, UpdateTagDto } from '../../../dto/tag.dto';
 import { AdminPermissions } from '../../../enum/admin-permission.enum';
-import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
+import { AdminRoles } from '../../../enum/admin-roles.enum';
 import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
-import {
-  AddTagDto,
-  FilterAndPaginationTagDto,
-  OptionTagDto,
-  UpdateTagDto,
-} from '../../../dto/tag.dto';
+import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
+import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
 import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
-import { TagService } from './tag.service';
 
 @Controller('tag')
 export class TagController {
@@ -40,6 +36,8 @@ export class TagController {
   /**
    * addTag
    * insertManyTag
+   *
+   * @param addTagDto
    */
   @Post('/add')
   @UsePipes(ValidationPipe)
@@ -75,6 +73,9 @@ export class TagController {
   /**
    * getAllTags
    * getTagById
+   *
+   * @param filterTagDto
+   * @param searchString
    */
   @Version(VERSION_NEUTRAL)
   @Post('/get-all')
@@ -97,16 +98,16 @@ export class TagController {
   @AdminMetaRoles(AdminRoles.SUPER_ADMIN, AdminRoles.ADMIN)
   @UseGuards(AdminRolesGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async getTagById(
-    @Param('id', MongoIdValidationPipe) id: string,
-    @Query() select: string,
-  ): Promise<ResponsePayload> {
+  async getTagById(@Param('id', MongoIdValidationPipe) id: string, @Query() select: string): Promise<ResponsePayload> {
     return await this.tagService.getTagById(id, select);
   }
 
   /**
    * updateTagById
    * updateMultipleTagById
+   *
+   * @param id
+   * @param updateTagDto
    */
   @Version(VERSION_NEUTRAL)
   @Put('/update/:id')
@@ -131,18 +132,16 @@ export class TagController {
   @AdminMetaPermissions(AdminPermissions.EDIT)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async updateMultipleTagById(
-    @Body() updateTagDto: UpdateTagDto,
-  ): Promise<ResponsePayload> {
-    return await this.tagService.updateMultipleTagById(
-      updateTagDto.ids,
-      updateTagDto,
-    );
+  async updateMultipleTagById(@Body() updateTagDto: UpdateTagDto): Promise<ResponsePayload> {
+    return await this.tagService.updateMultipleTagById(updateTagDto.ids, updateTagDto);
   }
 
   /**
    * deleteTagById
    * deleteMultipleTagById
+   *
+   * @param id
+   * @param checkUsage
    */
   @Version(VERSION_NEUTRAL)
   @Delete('/delete/:id')
@@ -171,9 +170,6 @@ export class TagController {
     @Body() data: { ids: string[] },
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.tagService.deleteMultipleTagById(
-      data.ids,
-      Boolean(checkUsage),
-    );
+    return await this.tagService.deleteMultipleTagById(data.ids, Boolean(checkUsage));
   }
 }

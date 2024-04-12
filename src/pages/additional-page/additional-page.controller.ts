@@ -14,20 +14,18 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { AdminMetaRoles } from '../../decorator/admin-roles.decorator';
-import { AdminRoles } from '../../enum/admin-roles.enum';
-import { AdminRolesGuard } from '../../guards/admin-roles.guard';
+
+import { AdditionalPageService } from './additional-page.service';
 import { AdminMetaPermissions } from '../../decorator/admin-permissions.decorator';
+import { AdminMetaRoles } from '../../decorator/admin-roles.decorator';
+import { AddAdditionalPageDto, UpdateAdditionalPageDto } from '../../dto/additional-page.dto';
 import { AdminPermissions } from '../../enum/admin-permission.enum';
-import { AdminPermissionGuard } from '../../guards/admin-permission.guard';
+import { AdminRoles } from '../../enum/admin-roles.enum';
 import { AdminJwtAuthGuard } from '../../guards/admin-jwt-auth.guard';
+import { AdminPermissionGuard } from '../../guards/admin-permission.guard';
+import { AdminRolesGuard } from '../../guards/admin-roles.guard';
 import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 import { MongoIdValidationPipe } from '../../pipes/mongo-id-validation.pipe';
-import { AdditionalPageService } from './additional-page.service';
-import {
-  AddAdditionalPageDto,
-  UpdateAdditionalPageDto,
-} from '../../dto/additional-page.dto';
 
 @Controller('additional-page')
 export class AdditionalPageController {
@@ -38,6 +36,8 @@ export class AdditionalPageController {
   /**
    * addAdditionalPage
    * insertManyAdditionalPage
+   *
+   * @param addAdditionalPageDto
    */
   @Post('/add')
   @UsePipes(ValidationPipe)
@@ -50,9 +50,7 @@ export class AdditionalPageController {
     @Body()
     addAdditionalPageDto: AddAdditionalPageDto,
   ): Promise<ResponsePayload> {
-    return await this.additionalPageService.addAdditionalPage(
-      addAdditionalPageDto,
-    );
+    return await this.additionalPageService.addAdditionalPage(addAdditionalPageDto);
   }
 
   /**
@@ -62,19 +60,16 @@ export class AdditionalPageController {
 
   @Version(VERSION_NEUTRAL)
   @Get('/:slug')
-  async getAdditionalPageById(
-    @Param('slug') slug: string,
-    @Query() select: string,
-  ): Promise<ResponsePayload> {
-    return await this.additionalPageService.getAdditionalPageBySlug(
-      slug,
-      select,
-    );
+  async getAdditionalPageById(@Param('slug') slug: string, @Query() select: string): Promise<ResponsePayload> {
+    return await this.additionalPageService.getAdditionalPageBySlug(slug, select);
   }
 
   /**
    * updateAdditionalPageById
    * updateMultipleAdditionalPageById
+   *
+   * @param slug
+   * @param updateAdditionalPageDto
    */
   @Version(VERSION_NEUTRAL)
   @Put('/update-data/:slug')
@@ -88,15 +83,15 @@ export class AdditionalPageController {
     @Param('slug', MongoIdValidationPipe) slug: string,
     @Body() updateAdditionalPageDto: UpdateAdditionalPageDto,
   ): Promise<ResponsePayload> {
-    return await this.additionalPageService.updateAdditionalPageBySlug(
-      slug,
-      updateAdditionalPageDto,
-    );
+    return await this.additionalPageService.updateAdditionalPageBySlug(slug, updateAdditionalPageDto);
   }
 
   /**
    * deleteAdditionalPageById
    * deleteMultipleAdditionalPageById
+   *
+   * @param slug
+   * @param checkUsage
    */
   @Version(VERSION_NEUTRAL)
   @Delete('/delete-data/:slug')
@@ -110,9 +105,6 @@ export class AdditionalPageController {
     @Param('slug', MongoIdValidationPipe) slug: string,
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.additionalPageService.deleteAdditionalPageBySlug(
-      slug,
-      Boolean(checkUsage),
-    );
+    return await this.additionalPageService.deleteAdditionalPageBySlug(slug, Boolean(checkUsage));
   }
 }

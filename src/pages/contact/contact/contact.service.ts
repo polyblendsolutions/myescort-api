@@ -6,20 +6,21 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../../shared/utils/utils.service';
-import { Contact } from '../../../interfaces/common/contact.interface';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../../enum/error-code.enum';
+
 import {
   AddContactDto,
   FilterAndPaginationContactDto,
   OptionContactDto,
   UpdateContactDto,
 } from '../../../dto/contact.dto';
+import { ErrorCodes } from '../../../enum/error-code.enum';
+import { Contact } from '../../../interfaces/common/contact.interface';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { User } from '../../../interfaces/user/user.interface';
+import { UtilsService } from '../../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -37,6 +38,8 @@ export class ContactService {
   /**
    * addContact
    * insertManyContact
+   *
+   * @param addContactDto
    */
   async addContact(addContactDto: AddContactDto): Promise<ResponsePayload> {
     const { name } = addContactDto;
@@ -86,9 +89,7 @@ export class ContactService {
       const saveData = await this.contactModel.insertMany(mData);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       // console.log(error);
@@ -219,9 +220,7 @@ export class ContactService {
     }
 
     try {
-      const dataAggregates = await this.contactModel.aggregate(
-        aggregateScontactes,
-      );
+      const dataAggregates = await this.contactModel.aggregate(aggregateScontactes);
       if (pagination) {
         return {
           ...{ ...dataAggregates[0] },
@@ -261,11 +260,11 @@ export class ContactService {
   /**
    * updateContactById
    * updateMultipleContactById
+   *
+   * @param id
+   * @param updateContactDto
    */
-  async updateContactById(
-    id: string,
-    updateContactDto: UpdateContactDto,
-  ): Promise<ResponsePayload> {
+  async updateContactById(id: string, updateContactDto: UpdateContactDto): Promise<ResponsePayload> {
     const { name } = updateContactDto;
     let data;
     try {
@@ -291,17 +290,11 @@ export class ContactService {
     }
   }
 
-  async updateMultipleContactById(
-    ids: string[],
-    updateContactDto: UpdateContactDto,
-  ): Promise<ResponsePayload> {
+  async updateMultipleContactById(ids: string[], updateContactDto: UpdateContactDto): Promise<ResponsePayload> {
     const mIds = ids.map((m) => new ObjectId(m));
 
     try {
-      await this.contactModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateContactDto },
-      );
+      await this.contactModel.updateMany({ _id: { $in: mIds } }, { $set: updateContactDto });
 
       return {
         success: true,
@@ -315,11 +308,11 @@ export class ContactService {
   /**
    * deleteContactById
    * deleteMultipleContactById
+   *
+   * @param id
+   * @param checkUsage
    */
-  async deleteContactById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteContactById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.contactModel.findById(id);
@@ -340,10 +333,7 @@ export class ContactService {
     }
   }
 
-  async deleteMultipleContactById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleContactById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       await this.contactModel.deleteMany({ _id: ids });

@@ -47,7 +47,6 @@ export const BlogSchema = new mongoose.Schema(
       required: false,
     },
 
-
     seoTitle: {
       type: String,
       required: false,

@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { CarouselService } from './carousel.service';
-import { CarouselController } from './carousel.controller';
 import { MongooseModule } from '@nestjs/mongoose';
+
+import { CarouselController } from './carousel.controller';
+import { CarouselService } from './carousel.service';
 import { CarouselSchema } from '../../../schema/carousel.schema';
 import { UserSchema } from '../../../schema/user.schema';
 
@@ -15,4 +16,4 @@ import { UserSchema } from '../../../schema/user.schema';
   providers: [CarouselService],
   controllers: [CarouselController],
 })
-export class CarouselModule {}  
+export class CarouselModule {}

@@ -6,13 +6,10 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../../shared/utils/utils.service';
-import { Profile } from '../../../interfaces/common/profile.interface';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../../enum/error-code.enum';
+
 import {
   AddProfileDto,
   CheckProfileDto,
@@ -20,7 +17,11 @@ import {
   OptionProfileDto,
   UpdateProfileDto,
 } from '../../../dto/profile.dto';
+import { ErrorCodes } from '../../../enum/error-code.enum';
+import { Profile } from '../../../interfaces/common/profile.interface';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { User } from '../../../interfaces/user/user.interface';
+import { UtilsService } from '../../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -38,6 +39,8 @@ export class ProfileService {
   /**
    * addProfile
    * insertManyProfile
+   *
+   * @param addProfileDto
    */
   async addProfile(addProfileDto: AddProfileDto): Promise<ResponsePayload> {
     const { name } = addProfileDto;
@@ -87,9 +90,7 @@ export class ProfileService {
       const saveData = await this.profileModel.insertMany(mData);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       // console.log(error);
@@ -217,9 +218,7 @@ export class ProfileService {
     }
 
     try {
-      const dataAggregates = await this.profileModel.aggregate(
-        aggregateSprofilees,
-      );
+      const dataAggregates = await this.profileModel.aggregate(aggregateSprofilees);
       if (pagination) {
         return {
           ...{ ...dataAggregates[0] },
@@ -259,11 +258,11 @@ export class ProfileService {
   /**
    * updateProfileById
    * updateMultipleProfileById
+   *
+   * @param id
+   * @param updateProfileDto
    */
-  async updateProfileById(
-    id: string,
-    updateProfileDto: UpdateProfileDto,
-  ): Promise<ResponsePayload> {
+  async updateProfileById(id: string, updateProfileDto: UpdateProfileDto): Promise<ResponsePayload> {
     const { name } = updateProfileDto;
     let data;
     try {
@@ -289,17 +288,11 @@ export class ProfileService {
     }
   }
 
-  async updateMultipleProfileById(
-    ids: string[],
-    updateProfileDto: UpdateProfileDto,
-  ): Promise<ResponsePayload> {
+  async updateMultipleProfileById(ids: string[], updateProfileDto: UpdateProfileDto): Promise<ResponsePayload> {
     const mIds = ids.map((m) => new ObjectId(m));
 
     try {
-      await this.profileModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateProfileDto },
-      );
+      await this.profileModel.updateMany({ _id: { $in: mIds } }, { $set: updateProfileDto });
 
       return {
         success: true,
@@ -313,11 +306,11 @@ export class ProfileService {
   /**
    * deleteProfileById
    * deleteMultipleProfileById
+   *
+   * @param id
+   * @param checkUsage
    */
-  async deleteProfileById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteProfileById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.profileModel.findById(id);
@@ -338,10 +331,7 @@ export class ProfileService {
     }
   }
 
-  async deleteMultipleProfileById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleProfileById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       await this.profileModel.deleteMany({ _id: ids });
@@ -358,11 +348,11 @@ export class ProfileService {
    * COUPON FUNCTIONS
    * generateOtpWithPhoneNo()
    * validateOtpWithPhoneNo()
+   *
+   * @param user
+   * @param checkProfileDto
    */
-  async checkProfileAvailability(
-    user: User,
-    checkProfileDto: CheckProfileDto,
-  ): Promise<ResponsePayload> {
+  async checkProfileAvailability(user: User, checkProfileDto: CheckProfileDto): Promise<ResponsePayload> {
     try {
       const { profileCode, subTotal } = checkProfileDto;
 

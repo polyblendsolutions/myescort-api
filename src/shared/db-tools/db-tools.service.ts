@@ -1,10 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
 import { exec } from 'child_process';
 import * as fs from 'fs';
 import { basename } from 'path';
-import { google } from 'googleapis';
-import * as archiver from 'archiver';
+
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as archiver from 'archiver';
+import { google } from 'googleapis';
 
 const GOOGLE_AUTH = new google.auth.GoogleAuth({
   keyFile: `./service-account-key-file.json`,
@@ -57,9 +58,7 @@ export class DbToolsService {
       await this.execToPromise(cmd);
 
       // File
-      const outputFilePath = `./backup/db/${
-        dbOptions.db
-      }_${new Date().toISOString()}.zip`;
+      const outputFilePath = `./backup/db/${dbOptions.db}_${new Date().toISOString()}.zip`;
       const sourceFile = `./backup/db/${dbOptions.db}`;
 
       // Process

@@ -4,21 +4,22 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
-  NotFoundException
-} from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model, Types } from "mongoose";
-import { ResponsePayload } from "../../../interfaces/core/response-payload.interface";
-import { ErrorCodes } from "../../../enum/error-code.enum";
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
+
 import {
   AddDivisionDto,
   FilterAndPaginationDivisionDto,
   OptionDivisionDto,
-  UpdateDivisionDto
-} from "../../../dto/division.dto";
-import { Division } from "../../../interfaces/common/division.interface";
-import { Area } from "../../../interfaces/common/area.interface";
-import { Zone } from "../../../interfaces/common/zone.interface";
+  UpdateDivisionDto,
+} from '../../../dto/division.dto';
+import { ErrorCodes } from '../../../enum/error-code.enum';
+import { Area } from '../../../interfaces/common/area.interface';
+import { Division } from '../../../interfaces/common/division.interface';
+import { Zone } from '../../../interfaces/common/zone.interface';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 
 const ObjectId = Types.ObjectId;
 
@@ -27,14 +28,13 @@ export class DivisionService {
   private logger = new Logger(DivisionService.name);
 
   constructor(
-    @InjectModel("Division")
+    @InjectModel('Division')
     private readonly divisionModel: Model<Division>,
-    @InjectModel("Area")
+    @InjectModel('Area')
     private readonly areaModel: Model<Area>,
-    @InjectModel("Zone")
-    private readonly zoneModel: Model<Zone>
-  ) {
-  }
+    @InjectModel('Zone')
+    private readonly zoneModel: Model<Zone>,
+  ) {}
 
   /**
    * Division Service Methods
@@ -46,23 +46,25 @@ export class DivisionService {
    * updateMultipleDivisionById()
    * deleteDivisionById()
    * deleteMultipleDivisionById()
+   *
+   * @param addDivisionDto
    */
   async addDivision(addDivisionDto: AddDivisionDto): Promise<ResponsePayload> {
     const newData = new this.divisionModel(addDivisionDto);
     try {
       const saveData = await newData.save();
       const data = {
-        _id: saveData._id
+        _id: saveData._id,
       };
       return {
         success: true,
-        message: "Data Added Success",
-        data
+        message: 'Data Added Success',
+        data,
       } as ResponsePayload;
     } catch (error) {
       console.log(error);
       if (error.code && error.code.toString() === ErrorCodes.UNIQUE_FIELD) {
-        throw new ConflictException("Slug Must be Unique");
+        throw new ConflictException('Slug Must be Unique');
       } else {
         throw new InternalServerErrorException(error.message);
       }
@@ -71,7 +73,7 @@ export class DivisionService {
 
   async insertManyDivision(
     addDivisionsDto: AddDivisionDto[],
-    optionDivisionDto: OptionDivisionDto
+    optionDivisionDto: OptionDivisionDto,
   ): Promise<ResponsePayload> {
     try {
       const { deleteMany } = optionDivisionDto;
@@ -81,14 +83,12 @@ export class DivisionService {
       const saveData = await this.divisionModel.insertMany(addDivisionsDto);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       console.log(error);
       if (error.code && error.code.toString() === ErrorCodes.UNIQUE_FIELD) {
-        throw new ConflictException("Slug Must be Unique");
+        throw new ConflictException('Slug Must be Unique');
       } else {
         throw new InternalServerErrorException(error.message);
       }
@@ -97,7 +97,7 @@ export class DivisionService {
 
   async getAllDivisions(
     filterDivisionDto: FilterAndPaginationDivisionDto,
-    searchQuery?: string
+    searchQuery?: string,
   ): Promise<ResponsePayload> {
     const { filter } = filterDivisionDto;
     const { pagination } = filterDivisionDto;
@@ -116,7 +116,7 @@ export class DivisionService {
       mFilter = { ...mFilter, ...filter };
     }
     if (searchQuery) {
-      mFilter = { ...mFilter, ...{ name: new RegExp(searchQuery, "i") } };
+      mFilter = { ...mFilter, ...{ name: new RegExp(searchQuery, 'i') } };
     }
     // Sort
     if (sort) {
@@ -150,27 +150,27 @@ export class DivisionService {
       if (Object.keys(mSelect).length) {
         mPagination = {
           $facet: {
-            metadata: [{ $count: "total" }],
+            metadata: [{ $count: 'total' }],
             data: [
               {
-                $skip: pagination.pageSize * pagination.currentPage
+                $skip: pagination.pageSize * pagination.currentPage,
               } /* IF PAGE START FROM 0 OR (pagination.currentPage - 1) IF PAGE 1*/,
               { $limit: pagination.pageSize },
-              { $project: mSelect }
-            ]
-          }
+              { $project: mSelect },
+            ],
+          },
         };
       } else {
         mPagination = {
           $facet: {
-            metadata: [{ $count: "total" }],
+            metadata: [{ $count: 'total' }],
             data: [
               {
-                $skip: pagination.pageSize * pagination.currentPage
+                $skip: pagination.pageSize * pagination.currentPage,
               } /* IF PAGE START FROM 0 OR (pagination.currentPage - 1) IF PAGE 1*/,
-              { $limit: pagination.pageSize }
-            ]
-          }
+              { $limit: pagination.pageSize },
+            ],
+          },
         };
       }
 
@@ -179,42 +179,39 @@ export class DivisionService {
       aggregateStages.push({
         $project: {
           data: 1,
-          count: { $arrayElemAt: ["$metadata.total", 0] }
-        }
+          count: { $arrayElemAt: ['$metadata.total', 0] },
+        },
       });
     }
 
     try {
-      const dataAggregates = await this.divisionModel.aggregate(
-        aggregateStages
-      );
+      const dataAggregates = await this.divisionModel.aggregate(aggregateStages);
       if (pagination) {
         return {
           ...{ ...dataAggregates[0] },
-          ...{ success: true, message: "Success" }
+          ...{ success: true, message: 'Success' },
         } as ResponsePayload;
       } else {
         return {
           data: dataAggregates,
           success: true,
-          message: "Success",
-          count: dataAggregates.length
+          message: 'Success',
+          count: dataAggregates.length,
         } as ResponsePayload;
       }
     } catch (err) {
       this.logger.error(err);
       if (err.code && err.code.toString() === ErrorCodes.PROJECTION_MISMATCH) {
-        throw new BadRequestException("Error! Projection mismatch");
+        throw new BadRequestException('Error! Projection mismatch');
       } else {
         throw new InternalServerErrorException();
       }
     }
   }
 
-
   async getAllDivisionsByAll(
     filterDivisionDto: FilterAndPaginationDivisionDto,
-    searchQuery?: string
+    searchQuery?: string,
   ): Promise<ResponsePayload> {
     try {
       const data: any = [];
@@ -222,15 +219,15 @@ export class DivisionService {
 
       for (const diviData of allDivission) {
         const mAreaData = await this.areaModel.find({
-          "division._id": diviData._id
+          'division._id': diviData._id,
         });
 
         const subArearArray = [];
 
         for (const sinAreData of mAreaData) {
           const allZone = await this.zoneModel.find({
-            "division._id": diviData._id,
-            "area._id": sinAreData._id
+            'division._id': diviData._id,
+            'area._id': sinAreData._id,
           });
           const mZone = JSON.parse(JSON.stringify(allZone));
           const obj = {
@@ -239,9 +236,9 @@ export class DivisionService {
             zone: mZone.map((c) => {
               return {
                 _id: c._id,
-                name: c.name
+                name: c.name,
               };
-            })
+            }),
           };
           subArearArray.push(obj);
         }
@@ -249,7 +246,7 @@ export class DivisionService {
         const obj = {
           _id: diviData._id,
           name: diviData.name,
-          area: subArearArray
+          area: subArearArray,
         };
 
         data.push(obj);
@@ -257,8 +254,8 @@ export class DivisionService {
 
       return {
         success: true,
-        message: "Success",
-        data: data
+        message: 'Success',
+        data: data,
       } as ResponsePayload;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
@@ -270,55 +267,43 @@ export class DivisionService {
       const data = await this.divisionModel.findById(id).select(select);
       return {
         success: true,
-        message: "Success",
-        data
+        message: 'Success',
+        data,
       } as ResponsePayload;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
   }
 
-  async updateDivisionById(
-    id: string,
-    updateDivisionDto: UpdateDivisionDto
-  ): Promise<ResponsePayload> {
+  async updateDivisionById(id: string, updateDivisionDto: UpdateDivisionDto): Promise<ResponsePayload> {
     try {
       await this.divisionModel.findByIdAndUpdate(id, {
-        $set: updateDivisionDto
+        $set: updateDivisionDto,
       });
       return {
         success: true,
-        message: "Success"
+        message: 'Success',
       } as ResponsePayload;
     } catch (err) {
       throw new InternalServerErrorException();
     }
   }
 
-  async updateMultipleDivisionById(
-    ids: string[],
-    updateDivisionDto: UpdateDivisionDto
-  ): Promise<ResponsePayload> {
+  async updateMultipleDivisionById(ids: string[], updateDivisionDto: UpdateDivisionDto): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
-      await this.divisionModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateDivisionDto }
-      );
+      await this.divisionModel.updateMany({ _id: { $in: mIds } }, { $set: updateDivisionDto });
 
       return {
         success: true,
-        message: "Success"
+        message: 'Success',
       } as ResponsePayload;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
   }
 
-  async deleteDivisionById(
-    id: string,
-    checkUsage: boolean
-  ): Promise<ResponsePayload> {
+  async deleteDivisionById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.divisionModel.findById(id);
@@ -326,10 +311,10 @@ export class DivisionService {
       throw new InternalServerErrorException(err.message);
     }
     if (!data) {
-      throw new NotFoundException("No Data found!");
+      throw new NotFoundException('No Data found!');
     }
     if (data.readOnly) {
-      throw new NotFoundException("Sorry! Read only data can not be deleted");
+      throw new NotFoundException('Sorry! Read only data can not be deleted');
     }
     try {
       await this.divisionModel.findByIdAndDelete(id);
@@ -339,23 +324,20 @@ export class DivisionService {
       }
       return {
         success: true,
-        message: "Success"
+        message: 'Success',
       } as ResponsePayload;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
     }
   }
 
-  async deleteMultipleDivisionById(
-    ids: string[],
-    checkUsage: boolean
-  ): Promise<ResponsePayload> {
+  async deleteMultipleDivisionById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       await this.divisionModel.deleteMany({ _id: mIds });
       return {
         success: true,
-        message: "Success"
+        message: 'Success',
       } as ResponsePayload;
     } catch (err) {
       throw new InternalServerErrorException(err.message);

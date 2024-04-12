@@ -1,24 +1,16 @@
-import { Admin } from './../../interfaces/admin/admin.interface';
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../shared/utils/utils.service';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../enum/error-code.enum';
-import {
-  AddReviewDto,
-  FilterAndPaginationReviewDto,
-  UpdateReviewDto,
-} from '../../dto/review.dto';
-import { Product } from '../../interfaces/common/product.interface';
 import { Review } from 'src/interfaces/common/review.interface';
+
+import { Admin } from './../../interfaces/admin/admin.interface';
+import { AddReviewDto, FilterAndPaginationReviewDto, UpdateReviewDto } from '../../dto/review.dto';
+import { ErrorCodes } from '../../enum/error-code.enum';
+import { Product } from '../../interfaces/common/product.interface';
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 import { User } from '../../interfaces/user/user.interface';
+import { UtilsService } from '../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -38,11 +30,11 @@ export class ReviewService {
   /**
    * addReview
    * insertManyReview
+   *
+   * @param user
+   * @param addReviewDto
    */
-  async addReview(
-    user: User,
-    addReviewDto: AddReviewDto,
-  ): Promise<ResponsePayload> {
+  async addReview(user: User, addReviewDto: AddReviewDto): Promise<ResponsePayload> {
     try {
       // const productData = await this.productModel
       //   .findById({ _id: addReviewDto.product })
@@ -89,10 +81,7 @@ export class ReviewService {
     }
   }
 
-  async addReviewByAdmin(
-    admin: Admin,
-    addReviewDto: AddReviewDto,
-  ): Promise<ResponsePayload> {
+  async addReviewByAdmin(admin: Admin, addReviewDto: AddReviewDto): Promise<ResponsePayload> {
     try {
       // const productData = await this.productModel
       //   .findById({ _id: addReviewDto.product })
@@ -315,11 +304,11 @@ export class ReviewService {
   /**
    * updateReviewById
    * updateMultipleReviewById
+   *
+   * @param id
+   * @param updateReviewDto
    */
-  async updateReviewById(
-    id: string,
-    updateReviewDto: UpdateReviewDto,
-  ): Promise<ResponsePayload> {
+  async updateReviewById(id: string, updateReviewDto: UpdateReviewDto): Promise<ResponsePayload> {
     try {
       await this.reviewModel.updateOne({ _id: id }, { $set: updateReviewDto });
       return {
@@ -335,6 +324,8 @@ export class ReviewService {
   /**
    * deleteReviewById
    * deleteMultipleReviewById
+   *
+   * @param id
    */
   async deleteReviewById(id: string): Promise<ResponsePayload> {
     try {
@@ -348,12 +339,7 @@ export class ReviewService {
     }
   }
 
-   
-
-  async deleteMultipleReviewById( 
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleReviewById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       await this.reviewModel.deleteMany({ _id: mIds });
@@ -365,5 +351,4 @@ export class ReviewService {
       throw new InternalServerErrorException(err.message);
     }
   }
-
 }

@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -10,9 +11,9 @@ import {
   IsObject,
   IsOptional,
   IsString,
-  ValidateNested,   
+  ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+
 import { PaginationDto } from './pagination.dto';
 import { OrderStatus } from '../enum/order.enum';
 

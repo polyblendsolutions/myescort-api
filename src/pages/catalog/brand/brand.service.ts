@@ -6,20 +6,16 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../../shared/utils/utils.service';
-import { Brand } from '../../../interfaces/common/brand.interface';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
+
+import { AddBrandDto, FilterAndPaginationBrandDto, OptionBrandDto, UpdateBrandDto } from '../../../dto/brand.dto';
 import { ErrorCodes } from '../../../enum/error-code.enum';
-import {
-  AddBrandDto,
-  FilterAndPaginationBrandDto,
-  OptionBrandDto,
-  UpdateBrandDto,
-} from '../../../dto/brand.dto';
+import { Brand } from '../../../interfaces/common/brand.interface';
 import { Product } from '../../../interfaces/common/product.interface';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
+import { UtilsService } from '../../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -37,6 +33,8 @@ export class BrandService {
   /**
    * addBrand
    * insertManyBrand
+   *
+   * @param addBrandDto
    */
   async addBrand(addBrandDto: AddBrandDto): Promise<ResponsePayload> {
     const { name } = addBrandDto;
@@ -66,10 +64,7 @@ export class BrandService {
     }
   }
 
-  async insertManyBrand(
-    addBrandsDto: AddBrandDto[],
-    optionBrandDto: OptionBrandDto,
-  ): Promise<ResponsePayload> {
+  async insertManyBrand(addBrandsDto: AddBrandDto[], optionBrandDto: OptionBrandDto): Promise<ResponsePayload> {
     const { deleteMany } = optionBrandDto;
     if (deleteMany) {
       await this.brandModel.deleteMany({});
@@ -86,9 +81,7 @@ export class BrandService {
       const saveData = await this.brandModel.insertMany(mData);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       // console.log(error);
@@ -103,11 +96,11 @@ export class BrandService {
   /**
    * getAllBrands
    * getBrandById
+   *
+   * @param filterBrandDto
+   * @param searchQuery
    */
-  async getAllBrands(
-    filterBrandDto: FilterAndPaginationBrandDto,
-    searchQuery?: string,
-  ): Promise<ResponsePayload> {
+  async getAllBrands(filterBrandDto: FilterAndPaginationBrandDto, searchQuery?: string): Promise<ResponsePayload> {
     const { filter } = filterBrandDto;
     const { pagination } = filterBrandDto;
     const { sort } = filterBrandDto;
@@ -234,11 +227,11 @@ export class BrandService {
   /**
    * updateBrandById
    * updateMultipleBrandById
+   *
+   * @param id
+   * @param updateBrandDto
    */
-  async updateBrandById(
-    id: string,
-    updateBrandDto: UpdateBrandDto,
-  ): Promise<ResponsePayload> {
+  async updateBrandById(id: string, updateBrandDto: UpdateBrandDto): Promise<ResponsePayload> {
     const { name } = updateBrandDto;
     let data;
     try {
@@ -269,10 +262,7 @@ export class BrandService {
     }
   }
 
-  async updateMultipleBrandById(
-    ids: string[],
-    updateBrandDto: UpdateBrandDto,
-  ): Promise<ResponsePayload> {
+  async updateMultipleBrandById(ids: string[], updateBrandDto: UpdateBrandDto): Promise<ResponsePayload> {
     const mIds = ids.map((m) => new ObjectId(m));
 
     // Delete No Multiple Action Data
@@ -281,10 +271,7 @@ export class BrandService {
     }
 
     try {
-      await this.brandModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateBrandDto },
-      );
+      await this.brandModel.updateMany({ _id: { $in: mIds } }, { $set: updateBrandDto });
 
       return {
         success: true,
@@ -298,11 +285,11 @@ export class BrandService {
   /**
    * deleteBrandById
    * deleteMultipleBrandById
+   *
+   * @param id
+   * @param checkUsage
    */
-  async deleteBrandById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteBrandById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.brandModel.findById(id);
@@ -330,10 +317,7 @@ export class BrandService {
           },
         };
         // Update Product
-        await this.productModel.updateMany(
-          { 'brand._id': new ObjectId(id) },
-          { $set: resetBrand },
-        );
+        await this.productModel.updateMany({ 'brand._id': new ObjectId(id) }, { $set: resetBrand });
       }
       return {
         success: true,
@@ -344,19 +328,14 @@ export class BrandService {
     }
   }
 
-  async deleteMultipleBrandById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleBrandById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       // Remove Read Only Data
       const allCategory = await this.brandModel.find({
         _id: { $in: mIds },
       });
-      const filteredIds = allCategory
-        .filter((f) => f.readOnly !== true)
-        .map((m) => m._id);
+      const filteredIds = allCategory.filter((f) => f.readOnly !== true).map((m) => m._id);
       await this.brandModel.deleteMany({ _id: filteredIds });
       // Reset Product Brand Reference
       if (checkUsage) {
@@ -371,10 +350,7 @@ export class BrandService {
           },
         };
         // Update Product
-        await this.productModel.updateMany(
-          { 'brand._id': { $in: mIds } },
-          { $set: resetBrand },
-        );
+        await this.productModel.updateMany({ 'brand._id': { $in: mIds } }, { $set: resetBrand });
       }
       return {
         success: true,

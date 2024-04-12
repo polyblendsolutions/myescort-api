@@ -6,13 +6,10 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../../shared/utils/utils.service';
-import { BannerCarosel } from '../../../interfaces/common/banner-carosel.interface';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../../enum/error-code.enum';
+
 import {
   AddBannerCaroselDto,
   CheckBannerCaroselDto,
@@ -20,7 +17,11 @@ import {
   OptionBannerCaroselDto,
   UpdateBannerCaroselDto,
 } from '../../../dto/banner-carosel.dto';
+import { ErrorCodes } from '../../../enum/error-code.enum';
+import { BannerCarosel } from '../../../interfaces/common/banner-carosel.interface';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { User } from '../../../interfaces/user/user.interface';
+import { UtilsService } from '../../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -29,7 +30,8 @@ export class BannerCaroselService {
   private logger = new Logger(BannerCaroselService.name);
 
   constructor(
-    @InjectModel('BannerCarosel') private readonly bannerCaroselModel: Model<BannerCarosel>,
+    @InjectModel('BannerCarosel')
+    private readonly bannerCaroselModel: Model<BannerCarosel>,
     @InjectModel('User') private readonly userModel: Model<User>,
     private configService: ConfigService,
     private utilsService: UtilsService,
@@ -38,6 +40,8 @@ export class BannerCaroselService {
   /**
    * addBannerCarosel
    * insertManyBannerCarosel
+   *
+   * @param addBannerCaroselDto
    */
   async addBannerCarosel(addBannerCaroselDto: AddBannerCaroselDto): Promise<ResponsePayload> {
     const { name } = addBannerCaroselDto;
@@ -87,9 +91,7 @@ export class BannerCaroselService {
       const saveData = await this.bannerCaroselModel.insertMany(mData);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       // console.log(error);
@@ -109,7 +111,7 @@ export class BannerCaroselService {
     try {
       const pageSize = 10;
       const currentPage = 1;
-      
+
       const data = await this.bannerCaroselModel
         .find()
         .skip(pageSize * (currentPage - 1))
@@ -117,11 +119,8 @@ export class BannerCaroselService {
       return {
         success: true,
         message: 'Success',
-      
-        
+
         data,
-     
-        
       } as ResponsePayload;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
@@ -162,10 +161,10 @@ export class BannerCaroselService {
     if (select) {
       mSelect = { ...select };
     } else {
-      mSelect = { 
+      mSelect = {
         name: 1,
-       };
-    }   
+      };
+    }
 
     // Finalize
     if (Object.keys(mFilter).length) {
@@ -220,9 +219,7 @@ export class BannerCaroselService {
     }
 
     try {
-      const dataAggregates = await this.bannerCaroselModel.aggregate(
-        aggregateSbannerCaroseles,
-      );
+      const dataAggregates = await this.bannerCaroselModel.aggregate(aggregateSbannerCaroseles);
       if (pagination) {
         return {
           ...{ ...dataAggregates[0] },
@@ -262,11 +259,11 @@ export class BannerCaroselService {
   /**
    * updateBannerCaroselById
    * updateMultipleBannerCaroselById
+   *
+   * @param id
+   * @param updateBannerCaroselDto
    */
-  async updateBannerCaroselById(
-    id: string,
-    updateBannerCaroselDto: UpdateBannerCaroselDto,
-  ): Promise<ResponsePayload> {
+  async updateBannerCaroselById(id: string, updateBannerCaroselDto: UpdateBannerCaroselDto): Promise<ResponsePayload> {
     const { name } = updateBannerCaroselDto;
     let data;
     try {
@@ -299,10 +296,7 @@ export class BannerCaroselService {
     const mIds = ids.map((m) => new ObjectId(m));
 
     try {
-      await this.bannerCaroselModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateBannerCaroselDto },
-      );
+      await this.bannerCaroselModel.updateMany({ _id: { $in: mIds } }, { $set: updateBannerCaroselDto });
 
       return {
         success: true,
@@ -316,11 +310,11 @@ export class BannerCaroselService {
   /**
    * deleteBannerCaroselById
    * deleteMultipleBannerCaroselById
+   *
+   * @param id
+   * @param checkUsage
    */
-  async deleteBannerCaroselById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteBannerCaroselById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.bannerCaroselModel.findById(id);
@@ -341,10 +335,7 @@ export class BannerCaroselService {
     }
   }
 
-  async deleteMultipleBannerCaroselById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleBannerCaroselById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       await this.bannerCaroselModel.deleteMany({ _id: ids });
@@ -361,6 +352,9 @@ export class BannerCaroselService {
    * COUPON FUNCTIONS
    * generateOtpWithPhoneNo()
    * validateOtpWithPhoneNo()
+   *
+   * @param user
+   * @param checkBannerCaroselDto
    */
   async checkBannerCaroselAvailability(
     user: User,
@@ -369,7 +363,9 @@ export class BannerCaroselService {
     try {
       const { bannerCaroselCode, subTotal } = checkBannerCaroselDto;
 
-      const bannerCaroselData = await this.bannerCaroselModel.findOne({ bannerCaroselCode });
+      const bannerCaroselData = await this.bannerCaroselModel.findOne({
+        bannerCaroselCode,
+      });
 
       if (bannerCaroselData) {
         const isExpired = this.utilsService.getDateDifference(

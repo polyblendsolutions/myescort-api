@@ -6,20 +6,16 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../../shared/utils/utils.service';
+
+import { AddTypeDto, FilterAndPaginationTypeDto, OptionTypeDto, UpdateTypeDto } from '../../../dto/type.dto';
+import { ErrorCodes } from '../../../enum/error-code.enum';
+import { Product } from '../../../interfaces/common/product.interface';
 import { Type } from '../../../interfaces/common/type.interface';
 import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../../enum/error-code.enum';
-import {
-  AddTypeDto,
-  FilterAndPaginationTypeDto,
-  OptionTypeDto,
-  UpdateTypeDto,
-} from '../../../dto/type.dto';
-import { Product } from '../../../interfaces/common/product.interface';
+import { UtilsService } from '../../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -37,6 +33,8 @@ export class TypeService {
   /**
    * addType
    * insertManyType
+   *
+   * @param addTypeDto
    */
   async addType(addTypeDto: AddTypeDto): Promise<ResponsePayload> {
     const { name, slug } = addTypeDto;
@@ -76,10 +74,7 @@ export class TypeService {
     }
   }
 
-  async insertManyType(
-    addTypesDto: AddTypeDto[],
-    optionTypeDto: OptionTypeDto,
-  ): Promise<ResponsePayload> {
+  async insertManyType(addTypesDto: AddTypeDto[], optionTypeDto: OptionTypeDto): Promise<ResponsePayload> {
     const { deleteMany } = optionTypeDto;
     if (deleteMany) {
       await this.typeModel.deleteMany({});
@@ -96,9 +91,7 @@ export class TypeService {
       const saveData = await this.typeModel.insertMany(mData);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       // console.log(error);
@@ -132,10 +125,7 @@ export class TypeService {
     }
   }
 
-  async getAllTypes(
-    filterTypeDto: FilterAndPaginationTypeDto,
-    searchQuery?: string,
-  ): Promise<ResponsePayload> {
+  async getAllTypes(filterTypeDto: FilterAndPaginationTypeDto, searchQuery?: string): Promise<ResponsePayload> {
     const { filter } = filterTypeDto;
     const { pagination } = filterTypeDto;
     const { sort } = filterTypeDto;
@@ -262,11 +252,11 @@ export class TypeService {
   /**
    * updateTypeById
    * updateMultipleTypeById
+   *
+   * @param id
+   * @param updateTypeDto
    */
-  async updateTypeById(
-    id: string,
-    updateTypeDto: UpdateTypeDto,
-  ): Promise<ResponsePayload> {
+  async updateTypeById(id: string, updateTypeDto: UpdateTypeDto): Promise<ResponsePayload> {
     try {
       const { name, slug } = updateTypeDto;
 
@@ -303,10 +293,7 @@ export class TypeService {
     }
   }
 
-  async updateMultipleTypeById(
-    ids: string[],
-    updateTypeDto: UpdateTypeDto,
-  ): Promise<ResponsePayload> {
+  async updateMultipleTypeById(ids: string[], updateTypeDto: UpdateTypeDto): Promise<ResponsePayload> {
     const mIds = ids.map((m) => new ObjectId(m));
 
     // Delete No Multiple Action Data
@@ -315,10 +302,7 @@ export class TypeService {
     }
 
     try {
-      await this.typeModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateTypeDto },
-      );
+      await this.typeModel.updateMany({ _id: { $in: mIds } }, { $set: updateTypeDto });
 
       return {
         success: true,
@@ -332,11 +316,11 @@ export class TypeService {
   /**
    * deleteTypeById
    * deleteMultipleTypeById
+   *
+   * @param id
+   * @param checkUsage
    */
-  async deleteTypeById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteTypeById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.typeModel.findById(id);
@@ -367,20 +351,14 @@ export class TypeService {
     }
   }
 
-  async deleteMultipleTypeById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleTypeById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       await this.typeModel.deleteMany({ _id: ids });
       // Reset Product Brand Reference
       if (checkUsage) {
         // Update Product
-        await this.productModel.updateMany(
-          {},
-          { $pull: { types: { $in: mIds } } },
-        );
+        await this.productModel.updateMany({}, { $pull: { types: { $in: mIds } } });
       }
       return {
         success: true,
