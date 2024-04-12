@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { BannerCaroselService } from './banner-carosel.service';
-import { BannerCaroselController } from './banner-carosel.controller';
 import { MongooseModule } from '@nestjs/mongoose';
+
+import { BannerCaroselController } from './banner-carosel.controller';
+import { BannerCaroselService } from './banner-carosel.service';
 import { BannerCaroselSchema } from '../../../schema/banner-carosel.schema';
 import { UserSchema } from '../../../schema/user.schema';
 
@@ -15,4 +16,4 @@ import { UserSchema } from '../../../schema/user.schema';
   providers: [BannerCaroselService],
   controllers: [BannerCaroselController],
 })
-export class BannerCaroselModule {}  
+export class BannerCaroselModule {}

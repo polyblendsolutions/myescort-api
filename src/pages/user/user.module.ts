@@ -1,17 +1,17 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { MongooseModule } from '@nestjs/mongoose';
+import { PassportModule } from '@nestjs/passport';
+
+import { JwtUserStrategy } from './jwt-user.strategy';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { PassportModule } from '@nestjs/passport';
-import { MongooseModule } from '@nestjs/mongoose';
-import { JwtModule } from '@nestjs/jwt';
-import { UserSchema } from '../../schema/user.schema';
-import { JwtUserStrategy } from './jwt-user.strategy';
 import { PASSPORT_USER_TOKEN_TYPE } from '../../core/global-variables';
+import { OtpSchema } from '../../schema/otp.schema';
 import { PromoOfferSchema } from '../../schema/promo-offer.schema';
-import { OtpSchema } from "../../schema/otp.schema";
-import { OtpService } from "../otp/otp.service";
-import { OtpModule } from "../otp/otp.module";
+import { UserSchema } from '../../schema/user.schema';
+import { OtpService } from '../otp/otp.service';
 
 @Module({
   imports: [

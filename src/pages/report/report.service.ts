@@ -1,24 +1,16 @@
-import { Admin } from '../../interfaces/admin/admin.interface';
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../shared/utils/utils.service';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../enum/error-code.enum';
-import {
-  AddReportDto,
-  FilterAndPaginationReportDto,
-  UpdateReportDto,
-} from '../../dto/report.dto';
-import { Product } from '../../interfaces/common/product.interface';
 import { Report } from 'src/interfaces/common/report.interface';
+
+import { AddReportDto, FilterAndPaginationReportDto, UpdateReportDto } from '../../dto/report.dto';
+import { ErrorCodes } from '../../enum/error-code.enum';
+import { Admin } from '../../interfaces/admin/admin.interface';
+import { Product } from '../../interfaces/common/product.interface';
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 import { User } from '../../interfaces/user/user.interface';
+import { UtilsService } from '../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -38,11 +30,11 @@ export class ReportService {
   /**
    * addReport
    * insertManyReport
+   *
+   * @param user
+   * @param addReportDto
    */
-  async addReport(
-    user: User,
-    addReportDto: AddReportDto,
-  ): Promise<ResponsePayload> {
+  async addReport(user: User, addReportDto: AddReportDto): Promise<ResponsePayload> {
     try {
       // const productData = await this.productModel
       //   .findById({ _id: addReportDto.product })
@@ -89,10 +81,7 @@ export class ReportService {
     }
   }
 
-  async addReportByAdmin(
-    admin: Admin,
-    addReportDto: AddReportDto,
-  ): Promise<ResponsePayload> {
+  async addReportByAdmin(admin: Admin, addReportDto: AddReportDto): Promise<ResponsePayload> {
     try {
       // const productData = await this.productModel
       //   .findById({ _id: addReportDto.product })
@@ -315,11 +304,11 @@ export class ReportService {
   /**
    * updateReportById
    * updateMultipleReportById
+   *
+   * @param id
+   * @param updateReportDto
    */
-  async updateReportById(
-    id: string,
-    updateReportDto: UpdateReportDto,
-  ): Promise<ResponsePayload> {
+  async updateReportById(id: string, updateReportDto: UpdateReportDto): Promise<ResponsePayload> {
     try {
       await this.reportModel.updateOne({ _id: id }, { $set: updateReportDto });
       return {
@@ -335,6 +324,8 @@ export class ReportService {
   /**
    * deleteReportById
    * deleteMultipleReportById
+   *
+   * @param id
    */
   async deleteReportById(id: string): Promise<ResponsePayload> {
     try {
@@ -348,12 +339,7 @@ export class ReportService {
     }
   }
 
-   
-
-  async deleteMultipleReportById( 
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleReportById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       await this.reportModel.deleteMany({ _id: mIds });
@@ -365,5 +351,4 @@ export class ReportService {
       throw new InternalServerErrorException(err.message);
     }
   }
-
 }

@@ -1,12 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as schedule from 'node-schedule';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { JobScheduler } from '../../interfaces/core/job-scheduler.interface';
-import { ConfigService } from '@nestjs/config';
+import * as schedule from 'node-schedule';
+
 import { PromoOffer } from '../../interfaces/common/promo-offer.interface';
-import { UtilsService } from '../utils/utils.service';
+import { JobScheduler } from '../../interfaces/core/job-scheduler.interface';
 import { DbToolsService } from '../db-tools/db-tools.service';
+import { UtilsService } from '../utils/utils.service';
 
 @Injectable()
 export class JobSchedulerService {
@@ -38,13 +39,7 @@ export class JobSchedulerService {
     });
   }
 
-  async addOfferScheduleOnStart(
-    isNew: boolean,
-    id: string,
-    expTime: Date,
-    products: any[],
-    jobId?: string,
-  ) {
+  async addOfferScheduleOnStart(isNew: boolean, id: string, expTime: Date, products: any[], jobId?: string) {
     const jobName = this.configService.get<string>('promoOfferScheduleOnStart');
     let saveJob;
     if (isNew) {
@@ -68,13 +63,7 @@ export class JobSchedulerService {
     });
   }
 
-  async addOfferScheduleOnEnd(
-    isNew: boolean,
-    id: string,
-    expTime: Date,
-    products: any[],
-    jobId?: string,
-  ) {
+  async addOfferScheduleOnEnd(isNew: boolean, id: string, expTime: Date, products: any[], jobId?: string) {
     const jobName = this.configService.get<string>('promoOfferScheduleOnEnd');
     let saveJob;
     if (isNew) {
@@ -118,36 +107,16 @@ export class JobSchedulerService {
         const offer = await this.promoOfferModel.findById(f.id);
 
         if (offer) {
-          const isStartDate = this.utilsService.getDateDifference(
-            new Date(),
-            new Date(offer.startDateTime),
-            'seconds',
-          );
-          const isEndDate = this.utilsService.getDateDifference(
-            new Date(),
-            new Date(offer.endDateTime),
-            'seconds',
-          );
-          const jobNameStart = this.configService.get<string>(
-            'promoOfferScheduleOnStart',
-          );
-          const jobNameEnd = this.configService.get<string>(
-            'promoOfferScheduleOnEnd',
-          );
+          const isStartDate = this.utilsService.getDateDifference(new Date(), new Date(offer.startDateTime), 'seconds');
+          const isEndDate = this.utilsService.getDateDifference(new Date(), new Date(offer.endDateTime), 'seconds');
+          const jobNameStart = this.configService.get<string>('promoOfferScheduleOnStart');
+          const jobNameEnd = this.configService.get<string>('promoOfferScheduleOnEnd');
           if (f.name === jobNameStart) {
             if (isStartDate <= 0) {
-              await this.utilsService.updateProductsOnOfferStart(
-                offer.products,
-              );
+              await this.utilsService.updateProductsOnOfferStart(offer.products);
               await this.jobSchedulerModel.findByIdAndDelete(f._id);
             } else {
-              await this.addOfferScheduleOnStart(
-                false,
-                f.id,
-                offer.startDateTime,
-                offer.products,
-                f._id,
-              );
+              await this.addOfferScheduleOnStart(false, f.id, offer.startDateTime, offer.products, f._id);
             }
           }
           if (f.name === jobNameEnd) {
@@ -156,13 +125,7 @@ export class JobSchedulerService {
               await this.promoOfferModel.findByIdAndDelete(f.id);
               await this.jobSchedulerModel.findByIdAndDelete(f._id);
             } else {
-              await this.addOfferScheduleOnEnd(
-                false,
-                f.id,
-                offer.endDateTime,
-                offer.products,
-                f._id,
-              );
+              await this.addOfferScheduleOnEnd(false, f.id, offer.endDateTime, offer.products, f._id);
             }
           }
         }

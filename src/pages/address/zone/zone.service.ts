@@ -8,15 +8,11 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
+
+import { AddZoneDto, FilterAndPaginationZoneDto, OptionZoneDto, UpdateZoneDto } from '../../../dto/zone.dto';
 import { ErrorCodes } from '../../../enum/error-code.enum';
-import {
-  AddZoneDto,
-  FilterAndPaginationZoneDto,
-  OptionZoneDto,
-  UpdateZoneDto,
-} from '../../../dto/zone.dto';
 import { Zone } from '../../../interfaces/common/zone.interface';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 
 const ObjectId = Types.ObjectId;
 
@@ -40,6 +36,8 @@ export class ZoneService {
    * updateMultipleZoneById()
    * deleteZoneById()
    * deleteMultipleZoneById()
+   *
+   * @param addZoneDto
    */
   async addZone(addZoneDto: AddZoneDto): Promise<ResponsePayload> {
     const newData = new this.zoneModel(addZoneDto);
@@ -63,10 +61,7 @@ export class ZoneService {
     }
   }
 
-  async insertManyZone(
-    addZonesDto: AddZoneDto[],
-    optionZoneDto: OptionZoneDto,
-  ): Promise<ResponsePayload> {
+  async insertManyZone(addZonesDto: AddZoneDto[], optionZoneDto: OptionZoneDto): Promise<ResponsePayload> {
     try {
       const { deleteMany } = optionZoneDto;
       if (deleteMany) {
@@ -75,9 +70,7 @@ export class ZoneService {
       const saveData = await this.zoneModel.insertMany(addZonesDto);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       console.log(error);
@@ -89,10 +82,7 @@ export class ZoneService {
     }
   }
 
-  async getAllZones(
-    filterZoneDto: FilterAndPaginationZoneDto,
-    searchQuery?: string,
-  ): Promise<ResponsePayload> {
+  async getAllZones(filterZoneDto: FilterAndPaginationZoneDto, searchQuery?: string): Promise<ResponsePayload> {
     const { filter } = filterZoneDto;
     const { pagination } = filterZoneDto;
     const { sort } = filterZoneDto;
@@ -203,10 +193,7 @@ export class ZoneService {
     }
   }
 
-  async getZoneByParentId(
-    id: string,
-    select: string,
-  ): Promise<ResponsePayload> {
+  async getZoneByParentId(id: string, select: string): Promise<ResponsePayload> {
     try {
       const data = await this.zoneModel.find({ 'area._id': id }).select(select);
       return {
@@ -233,10 +220,7 @@ export class ZoneService {
     }
   }
 
-  async updateZoneById(
-    id: string,
-    updateZoneDto: UpdateZoneDto,
-  ): Promise<ResponsePayload> {
+  async updateZoneById(id: string, updateZoneDto: UpdateZoneDto): Promise<ResponsePayload> {
     try {
       await this.zoneModel.findByIdAndUpdate(id, {
         $set: updateZoneDto,
@@ -250,16 +234,10 @@ export class ZoneService {
     }
   }
 
-  async updateMultipleZoneById(
-    ids: string[],
-    updateZoneDto: UpdateZoneDto,
-  ): Promise<ResponsePayload> {
+  async updateMultipleZoneById(ids: string[], updateZoneDto: UpdateZoneDto): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
-      await this.zoneModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateZoneDto },
-      );
+      await this.zoneModel.updateMany({ _id: { $in: mIds } }, { $set: updateZoneDto });
 
       return {
         success: true,
@@ -270,10 +248,7 @@ export class ZoneService {
     }
   }
 
-  async deleteZoneById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteZoneById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.zoneModel.findById(id);
@@ -301,10 +276,7 @@ export class ZoneService {
     }
   }
 
-  async deleteMultipleZoneById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleZoneById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       await this.zoneModel.deleteMany({ _id: mIds });

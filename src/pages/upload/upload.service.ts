@@ -1,9 +1,7 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
 import * as fs from 'fs';
+
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+
 import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 
 @Injectable()
@@ -31,10 +29,7 @@ export class UploadService {
     }
   }
 
-  async deleteMultipleFile(
-    baseurl: string,
-    url: string[],
-  ): Promise<ResponsePayload> {
+  async deleteMultipleFile(baseurl: string, url: string[]): Promise<ResponsePayload> {
     try {
       if (url && url.length) {
         url.forEach((u) => {

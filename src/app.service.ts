@@ -1,14 +1,12 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { JobSchedulerService } from './shared/job-scheduler/job-scheduler.service';
-import { DbToolsService } from './shared/db-tools/db-tools.service';
+
 import { ResponsePayload } from './interfaces/core/response-payload.interface';
+import { DbToolsService } from './shared/db-tools/db-tools.service';
+import { JobSchedulerService } from './shared/job-scheduler/job-scheduler.service';
 
 @Injectable()
 export class AppService {
-  constructor(
-    private jobSchedulerService: JobSchedulerService,
-    private dbToolsService: DbToolsService,
-  ) {
+  constructor(private jobSchedulerService: JobSchedulerService, private dbToolsService: DbToolsService) {
     this.jobSchedulerService.reAddScheduler();
     this.jobSchedulerService.autoBackupDatabaseToDrive();
   }
@@ -16,6 +14,8 @@ export class AppService {
   /**
    * DATABASE BACKUP & RESTORE
    * backupMongoDb()
+   *
+   * @param password
    */
   async backupDatabase(password: string): Promise<ResponsePayload> {
     try {

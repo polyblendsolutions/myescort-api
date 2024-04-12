@@ -1,21 +1,14 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../shared/utils/utils.service';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
+
+import { AddWishListDto, UpdateWishListDto, UpdateWishListQty } from '../../dto/wish-list.dto';
 import { Product } from '../../interfaces/common/product.interface';
-import { User } from '../../interfaces/user/user.interface';
-import {
-  AddWishListDto,
-  UpdateWishListDto,
-  UpdateWishListQty,
-} from '../../dto/wish-list.dto';
 import { WishList } from '../../interfaces/common/wish-list.interface';
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
+import { User } from '../../interfaces/user/user.interface';
+import { UtilsService } from '../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -34,11 +27,11 @@ export class WishListService {
   /**
    * addToWishList()
    * addToWishListMultiple()
+   *
+   * @param addWishListDto
+   * @param user
    */
-  async addToWishList(
-    addWishListDto: AddWishListDto,
-    user: User,
-  ): Promise<ResponsePayload> {
+  async addToWishList(addWishListDto: AddWishListDto, user: User): Promise<ResponsePayload> {
     const userId = user._id;
     const data = addWishListDto;
     const final = { ...data, ...{ user: userId } };
@@ -80,10 +73,7 @@ export class WishListService {
     }
   }
 
-  async addToWishListMultiple(
-    addWishListDto: AddWishListDto[],
-    user: User,
-  ): Promise<ResponsePayload> {
+  async addToWishListMultiple(addWishListDto: AddWishListDto[], user: User): Promise<ResponsePayload> {
     const userId = user._id;
 
     try {
@@ -124,6 +114,8 @@ export class WishListService {
 
   /**
    * getWishListByUserId()
+   *
+   * @param user
    */
   async getWishListByUserId(user: User): Promise<ResponsePayload> {
     try {
@@ -147,6 +139,9 @@ export class WishListService {
 
   /**
    * deleteWishListById()
+   *
+   * @param id
+   * @param user
    */
   async deleteWishListById(id: string, user: User): Promise<ResponsePayload> {
     try {
@@ -168,11 +163,11 @@ export class WishListService {
 
   /**
    * updateWishListDyId()
+   *
+   * @param id
+   * @param updateWishListDto
    */
-  async updateWishListById(
-    id: string,
-    updateWishListDto: UpdateWishListDto,
-  ): Promise<ResponsePayload> {
+  async updateWishListById(id: string, updateWishListDto: UpdateWishListDto): Promise<ResponsePayload> {
     try {
       console.log('updateWishListDto', updateWishListDto);
       await this.wishListModel.findByIdAndUpdate(id, {
@@ -191,11 +186,11 @@ export class WishListService {
 
   /**
    * updateWishListQty()
+   *
+   * @param id
+   * @param updateWishListQty
    */
-  async updateWishListQty(
-    id: string,
-    updateWishListQty: UpdateWishListQty,
-  ): Promise<ResponsePayload> {
+  async updateWishListQty(id: string, updateWishListQty: UpdateWishListQty): Promise<ResponsePayload> {
     try {
       if (updateWishListQty.type == 'increment') {
         await this.wishListModel.findByIdAndUpdate(id, {

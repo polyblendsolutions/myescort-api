@@ -14,25 +14,26 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
-import { AdminRoles } from '../../../enum/admin-roles.enum';
-import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
+
+import { NewsletterService } from './newsletter.service';
 import { AdminMetaPermissions } from '../../../decorator/admin-permissions.decorator';
-import { AdminPermissions } from '../../../enum/admin-permission.enum';
-import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
-import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
+import { GetTokenUser } from '../../../decorator/get-token-user.decorator';
 import {
   AddNewsletterDto,
   FilterAndPaginationNewsletterDto,
   OptionNewsletterDto,
   UpdateNewsletterDto,
 } from '../../../dto/newsletter.dto';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
-import { NewsletterService } from './newsletter.service';
+import { AdminPermissions } from '../../../enum/admin-permission.enum';
+import { AdminRoles } from '../../../enum/admin-roles.enum';
+import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
+import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
 import { UserJwtAuthGuard } from '../../../guards/user-jwt-auth.guard';
-import { GetTokenUser } from '../../../decorator/get-token-user.decorator';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { User } from '../../../interfaces/user/user.interface';
+import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
 
 @Controller('newsletter')
 export class NewsletterController {
@@ -43,6 +44,8 @@ export class NewsletterController {
   /**
    * addNewsletter
    * insertManyNewsletter
+   *
+   * @param addNewsletterDto
    */
   @Post('/add')
   // @UsePipes(ValidationPipe)
@@ -72,15 +75,15 @@ export class NewsletterController {
       option: OptionNewsletterDto;
     },
   ): Promise<ResponsePayload> {
-    return await this.newsletterService.insertManyNewsletter(
-      body.data,
-      body.option,
-    );
+    return await this.newsletterService.insertManyNewsletter(body.data, body.option);
   }
 
   /**
    * getAllNewsletters
    * getNewsletterById
+   *
+   * @param filterNewsletterDto
+   * @param searchString
    */
   @Version(VERSION_NEUTRAL)
   @Post('/get-all')
@@ -89,10 +92,7 @@ export class NewsletterController {
     @Body() filterNewsletterDto: FilterAndPaginationNewsletterDto,
     @Query('q') searchString: string,
   ): Promise<ResponsePayload> {
-    return this.newsletterService.getAllNewsletters(
-      filterNewsletterDto,
-      searchString,
-    );
+    return this.newsletterService.getAllNewsletters(filterNewsletterDto, searchString);
   }
 
   @Version(VERSION_NEUTRAL)
@@ -113,6 +113,9 @@ export class NewsletterController {
   /**
    * updateNewsletterById
    * updateMultipleNewsletterById
+   *
+   * @param id
+   * @param updateNewsletterDto
    */
   @Version(VERSION_NEUTRAL)
   @Put('/update/:id')
@@ -126,10 +129,7 @@ export class NewsletterController {
     @Param('id', MongoIdValidationPipe) id: string,
     @Body() updateNewsletterDto: UpdateNewsletterDto,
   ): Promise<ResponsePayload> {
-    return await this.newsletterService.updateNewsletterById(
-      id,
-      updateNewsletterDto,
-    );
+    return await this.newsletterService.updateNewsletterById(id, updateNewsletterDto);
   }
 
   @Version(VERSION_NEUTRAL)
@@ -140,18 +140,16 @@ export class NewsletterController {
   @AdminMetaPermissions(AdminPermissions.EDIT)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async updateMultipleNewsletterById(
-    @Body() updateNewsletterDto: UpdateNewsletterDto,
-  ): Promise<ResponsePayload> {
-    return await this.newsletterService.updateMultipleNewsletterById(
-      updateNewsletterDto.ids,
-      updateNewsletterDto,
-    );
+  async updateMultipleNewsletterById(@Body() updateNewsletterDto: UpdateNewsletterDto): Promise<ResponsePayload> {
+    return await this.newsletterService.updateMultipleNewsletterById(updateNewsletterDto.ids, updateNewsletterDto);
   }
 
   /**
    * deleteNewsletterById
    * deleteMultipleNewsletterById
+   *
+   * @param id
+   * @param checkUsage
    */
   @Version(VERSION_NEUTRAL)
   @Delete('/delete/:id')
@@ -165,10 +163,7 @@ export class NewsletterController {
     @Param('id', MongoIdValidationPipe) id: string,
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.newsletterService.deleteNewsletterById(
-      id,
-      Boolean(checkUsage),
-    );
+    return await this.newsletterService.deleteNewsletterById(id, Boolean(checkUsage));
   }
 
   @Version(VERSION_NEUTRAL)
@@ -183,9 +178,6 @@ export class NewsletterController {
     @Body() data: { ids: string[] },
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.newsletterService.deleteMultipleNewsletterById(
-      data.ids,
-      Boolean(checkUsage),
-    );
+    return await this.newsletterService.deleteMultipleNewsletterById(data.ids, Boolean(checkUsage));
   }
 }

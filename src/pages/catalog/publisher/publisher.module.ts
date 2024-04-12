@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { PublisherService } from './publisher.service';
-import { PublisherController } from './publisher.controller';
 import { MongooseModule } from '@nestjs/mongoose';
+
+import { PublisherController } from './publisher.controller';
+import { PublisherService } from './publisher.service';
 import { PublisherSchema } from '../../../schema/publisher.schema';
 import { UserSchema } from '../../../schema/user.schema';
 
@@ -15,4 +16,4 @@ import { UserSchema } from '../../../schema/user.schema';
   providers: [PublisherService],
   controllers: [PublisherController],
 })
-export class PublisherModule {}  
+export class PublisherModule {}

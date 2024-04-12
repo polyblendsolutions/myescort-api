@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+
 import { SubCategoryController } from './sub-category.controller';
 import { SubCategoryService } from './sub-category.service';
-import { MongooseModule } from '@nestjs/mongoose';
-import { SubCategorySchema } from '../../../schema/sub-category.schema';
 import { ProductSchema } from '../../../schema/product.schema';
+import { SubCategorySchema } from '../../../schema/sub-category.schema';
 
 @Module({
   imports: [

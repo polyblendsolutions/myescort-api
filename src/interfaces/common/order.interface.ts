@@ -12,7 +12,7 @@ export interface Order {
   subTotal: number;
   deliveryCharge: number;
   discount: number;
-  grandTotal: number;      
+  grandTotal: number;
   checkoutDate: string;
   deliveryDate?: any;
   paymentStatus: string;

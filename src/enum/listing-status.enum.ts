@@ -1,3 +1,3 @@
 export enum ListingStatus {
-    publish = 'publish '
+  publish = 'publish ',
 }

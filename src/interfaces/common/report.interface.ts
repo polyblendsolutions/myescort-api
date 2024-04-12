@@ -1,7 +1,6 @@
 import { Product } from './product.interface';
 import { User } from '../user/user.interface';
 
-
 export interface Report {
   _id?: string;
   user?: string | User;

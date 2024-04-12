@@ -7,14 +7,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 import { Cache } from 'cache-manager';
+import { Model, Types } from 'mongoose';
+
+import { AddAdditionalPageDto, UpdateAdditionalPageDto } from '../../dto/additional-page.dto';
 import { AdditionalPage } from '../../interfaces/core/additional-page.interface';
-import {
-  AddAdditionalPageDto,
-  UpdateAdditionalPageDto,
-} from '../../dto/additional-page.dto';
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 
 const ObjectId = Types.ObjectId;
 
@@ -34,10 +32,10 @@ export class AdditionalPageService {
   /**
    * addAdditionalPage
    * insertManyAdditionalPage
+   *
+   * @param addAdditionalPageDto
    */
-  async addAdditionalPage(
-    addAdditionalPageDto: AddAdditionalPageDto,
-  ): Promise<ResponsePayload> {
+  async addAdditionalPage(addAdditionalPageDto: AddAdditionalPageDto): Promise<ResponsePayload> {
     try {
       const pageInfo = await this.additionalPageModel.findOne({
         slug: addAdditionalPageDto.slug,
@@ -82,14 +80,9 @@ export class AdditionalPageService {
    * getAdditionalPageById
    */
 
-  async getAdditionalPageBySlug(
-    slug: string,
-    select: string,
-  ): Promise<ResponsePayload> {
+  async getAdditionalPageBySlug(slug: string, select: string): Promise<ResponsePayload> {
     try {
-      const data = await this.additionalPageModel
-        .findOne({ slug })
-        .select(select);
+      const data = await this.additionalPageModel.findOne({ slug }).select(select);
       return {
         success: true,
         message: 'Success',
@@ -103,6 +96,9 @@ export class AdditionalPageService {
   /**
    * updateAdditionalPageById
    * updateMultipleAdditionalPageById
+   *
+   * @param slug
+   * @param updateAdditionalPageDto
    */
   async updateAdditionalPageBySlug(
     slug: string,
@@ -140,11 +136,11 @@ export class AdditionalPageService {
   /**
    * deleteAdditionalPageById
    * deleteMultipleAdditionalPageById
+   *
+   * @param slug
+   * @param checkUsage
    */
-  async deleteAdditionalPageBySlug(
-    slug: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteAdditionalPageBySlug(slug: string, checkUsage: boolean): Promise<ResponsePayload> {
     try {
       await this.additionalPageModel.findOneAndDelete({ slug });
       // Cache Removed

@@ -14,13 +14,11 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
-import { AdminRoles } from '../../../enum/admin-roles.enum';
-import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
+
+import { CarouselService } from './carousel.service';
 import { AdminMetaPermissions } from '../../../decorator/admin-permissions.decorator';
-import { AdminPermissions } from '../../../enum/admin-permission.enum';
-import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
-import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
+import { GetTokenUser } from '../../../decorator/get-token-user.decorator';
 import {
   AddCarouselDto,
   CheckCarouselDto,
@@ -28,12 +26,15 @@ import {
   OptionCarouselDto,
   UpdateCarouselDto,
 } from '../../../dto/carousel.dto';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
-import { CarouselService } from './carousel.service';
+import { AdminPermissions } from '../../../enum/admin-permission.enum';
+import { AdminRoles } from '../../../enum/admin-roles.enum';
+import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
+import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
 import { UserJwtAuthGuard } from '../../../guards/user-jwt-auth.guard';
-import { GetTokenUser } from '../../../decorator/get-token-user.decorator';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { User } from '../../../interfaces/user/user.interface';
+import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
 
 @Controller('carousel')
 export class CarouselController {
@@ -44,6 +45,8 @@ export class CarouselController {
   /**
    * addCarousel
    * insertManyCarousel
+   *
+   * @param addCarouselDto
    */
   @Post('/add')
   // @UsePipes(ValidationPipe)
@@ -73,15 +76,15 @@ export class CarouselController {
       option: OptionCarouselDto;
     },
   ): Promise<ResponsePayload> {
-    return await this.carouselService.insertManyCarousel(
-      body.data,
-      body.option,
-    );
+    return await this.carouselService.insertManyCarousel(body.data, body.option);
   }
 
   /**
    * getAllCarousels
    * getCarouselById
+   *
+   * @param filterCarouselDto
+   * @param searchString
    */
   @Version(VERSION_NEUTRAL)
   @Post('/get-all')
@@ -90,10 +93,7 @@ export class CarouselController {
     @Body() filterCarouselDto: FilterAndPaginationCarouselDto,
     @Query('q') searchString: string,
   ): Promise<ResponsePayload> {
-    return this.carouselService.getAllCarousels(
-      filterCarouselDto,
-      searchString,
-    );
+    return this.carouselService.getAllCarousels(filterCarouselDto, searchString);
   }
 
   @Version(VERSION_NEUTRAL)
@@ -114,6 +114,9 @@ export class CarouselController {
   /**
    * updateCarouselById
    * updateMultipleCarouselById
+   *
+   * @param id
+   * @param updateCarouselDto
    */
   @Version(VERSION_NEUTRAL)
   @Put('/update/:id')
@@ -138,18 +141,16 @@ export class CarouselController {
   @AdminMetaPermissions(AdminPermissions.EDIT)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async updateMultipleCarouselById(
-    @Body() updateCarouselDto: UpdateCarouselDto,
-  ): Promise<ResponsePayload> {
-    return await this.carouselService.updateMultipleCarouselById(
-      updateCarouselDto.ids,
-      updateCarouselDto,
-    );
+  async updateMultipleCarouselById(@Body() updateCarouselDto: UpdateCarouselDto): Promise<ResponsePayload> {
+    return await this.carouselService.updateMultipleCarouselById(updateCarouselDto.ids, updateCarouselDto);
   }
 
   /**
    * deleteCarouselById
    * deleteMultipleCarouselById
+   *
+   * @param id
+   * @param checkUsage
    */
   @Version(VERSION_NEUTRAL)
   @Delete('/delete/:id')
@@ -163,10 +164,7 @@ export class CarouselController {
     @Param('id', MongoIdValidationPipe) id: string,
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.carouselService.deleteCarouselById(
-      id,
-      Boolean(checkUsage),
-    );
+    return await this.carouselService.deleteCarouselById(id, Boolean(checkUsage));
   }
 
   @Version(VERSION_NEUTRAL)
@@ -181,10 +179,7 @@ export class CarouselController {
     @Body() data: { ids: string[] },
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.carouselService.deleteMultipleCarouselById(
-      data.ids,
-      Boolean(checkUsage),
-    );
+    return await this.carouselService.deleteMultipleCarouselById(data.ids, Boolean(checkUsage));
   }
 
   @Post('/check-contact-availability')
@@ -194,9 +189,6 @@ export class CarouselController {
     @GetTokenUser() user: User,
     @Body() checkCarouselDto: CheckCarouselDto,
   ): Promise<ResponsePayload> {
-    return await this.carouselService.checkCarouselAvailability(
-      user,
-      checkCarouselDto,
-    );
+    return await this.carouselService.checkCarouselAvailability(user, checkCarouselDto);
   }
 }

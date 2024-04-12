@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { AuthorService } from './author.service';
-import { AuthorController } from './author.controller';
 import { MongooseModule } from '@nestjs/mongoose';
+
+import { AuthorController } from './author.controller';
+import { AuthorService } from './author.service';
 import { AuthorSchema } from '../../../schema/author.schema';
 import { UserSchema } from '../../../schema/user.schema';
 
@@ -15,4 +16,4 @@ import { UserSchema } from '../../../schema/user.schema';
   providers: [AuthorService],
   controllers: [AuthorController],
 })
-export class AuthorModule {}  
+export class AuthorModule {}

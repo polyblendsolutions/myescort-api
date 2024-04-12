@@ -5,7 +5,7 @@ enum VerifiedStatus {
   Unverified = 0,
   Pending = 1,
   Verified = 2,
-  Rejected = 3
+  Rejected = 3,
 }
 
 export const UserSchema = new mongoose.Schema(
@@ -101,7 +101,7 @@ export const UserSchema = new mongoose.Schema(
       enum: [VerifiedStatus.Pending, VerifiedStatus.Rejected, VerifiedStatus.Unverified, VerifiedStatus.Verified],
       default: VerifiedStatus.Unverified,
     },
-    varifiedImage:{
+    varifiedImage: {
       type: String,
       required: false,
     },

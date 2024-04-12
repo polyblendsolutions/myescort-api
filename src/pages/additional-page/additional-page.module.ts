@@ -1,15 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AdditionalPageService } from './additional-page.service';
-import { AdditionalPageController } from './additional-page.controller';
 import { MongooseModule } from '@nestjs/mongoose';
+
+import { AdditionalPageController } from './additional-page.controller';
+import { AdditionalPageService } from './additional-page.service';
 import { AdditionalPageSchema } from '../../schema/additional-page.schema';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: 'AdditionalPage', schema: AdditionalPageSchema },
-    ]),
-  ],
+  imports: [MongooseModule.forFeature([{ name: 'AdditionalPage', schema: AdditionalPageSchema }])],
   providers: [AdditionalPageService],
   controllers: [AdditionalPageController],
 })

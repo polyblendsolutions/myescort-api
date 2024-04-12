@@ -6,13 +6,10 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../../shared/utils/utils.service';
-import { Author } from '../../../interfaces/common/author.interface';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../../enum/error-code.enum';
+
 import {
   AddAuthorDto,
   CheckAuthorDto,
@@ -20,7 +17,11 @@ import {
   OptionAuthorDto,
   UpdateAuthorDto,
 } from '../../../dto/author.dto';
+import { ErrorCodes } from '../../../enum/error-code.enum';
+import { Author } from '../../../interfaces/common/author.interface';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { User } from '../../../interfaces/user/user.interface';
+import { UtilsService } from '../../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -38,6 +39,8 @@ export class AuthorService {
   /**
    * addAuthor
    * insertManyAuthor
+   *
+   * @param addAuthorDto
    */
   async addAuthor(addAuthorDto: AddAuthorDto): Promise<ResponsePayload> {
     const { name, slug } = addAuthorDto;
@@ -77,10 +80,7 @@ export class AuthorService {
     }
   }
 
-  async insertManyAuthor(
-    addAuthorsDto: AddAuthorDto[],
-    optionAuthorDto: OptionAuthorDto,
-  ): Promise<ResponsePayload> {
+  async insertManyAuthor(addAuthorsDto: AddAuthorDto[], optionAuthorDto: OptionAuthorDto): Promise<ResponsePayload> {
     const { deleteMany } = optionAuthorDto;
     if (deleteMany) {
       await this.authorModel.deleteMany({});
@@ -97,9 +97,7 @@ export class AuthorService {
       const saveData = await this.authorModel.insertMany(mData);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       // console.log(error);
@@ -135,10 +133,7 @@ export class AuthorService {
     }
   }
 
-  async getAllAuthors(
-    filterAuthorDto: FilterAndPaginationAuthorDto,
-    searchQuery?: string,
-  ): Promise<ResponsePayload> {
+  async getAllAuthors(filterAuthorDto: FilterAndPaginationAuthorDto, searchQuery?: string): Promise<ResponsePayload> {
     const { filter } = filterAuthorDto;
     const { pagination } = filterAuthorDto;
     const { sort } = filterAuthorDto;
@@ -227,9 +222,7 @@ export class AuthorService {
     }
 
     try {
-      const dataAggregates = await this.authorModel.aggregate(
-        aggregateSauthores,
-      );
+      const dataAggregates = await this.authorModel.aggregate(aggregateSauthores);
       if (pagination) {
         return {
           ...{ ...dataAggregates[0] },
@@ -269,11 +262,11 @@ export class AuthorService {
   /**
    * updateAuthorById
    * updateMultipleAuthorById
+   *
+   * @param id
+   * @param updateAuthorDto
    */
-  async updateAuthorById(
-    id: string,
-    updateAuthorDto: UpdateAuthorDto,
-  ): Promise<ResponsePayload> {
+  async updateAuthorById(id: string, updateAuthorDto: UpdateAuthorDto): Promise<ResponsePayload> {
     try {
       const { name, slug } = updateAuthorDto;
 
@@ -310,17 +303,11 @@ export class AuthorService {
     }
   }
 
-  async updateMultipleAuthorById(
-    ids: string[],
-    updateAuthorDto: UpdateAuthorDto,
-  ): Promise<ResponsePayload> {
+  async updateMultipleAuthorById(ids: string[], updateAuthorDto: UpdateAuthorDto): Promise<ResponsePayload> {
     const mIds = ids.map((m) => new ObjectId(m));
 
     try {
-      await this.authorModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateAuthorDto },
-      );
+      await this.authorModel.updateMany({ _id: { $in: mIds } }, { $set: updateAuthorDto });
 
       return {
         success: true,
@@ -334,11 +321,11 @@ export class AuthorService {
   /**
    * deleteAuthorById
    * deleteMultipleAuthorById
+   *
+   * @param id
+   * @param checkUsage
    */
-  async deleteAuthorById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteAuthorById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.authorModel.findById(id);
@@ -359,10 +346,7 @@ export class AuthorService {
     }
   }
 
-  async deleteMultipleAuthorById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleAuthorById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       await this.authorModel.deleteMany({ _id: ids });
@@ -379,11 +363,11 @@ export class AuthorService {
    * COUPON FUNCTIONS
    * generateOtpWithPhoneNo()
    * validateOtpWithPhoneNo()
+   *
+   * @param user
+   * @param checkAuthorDto
    */
-  async checkAuthorAvailability(
-    user: User,
-    checkAuthorDto: CheckAuthorDto,
-  ): Promise<ResponsePayload> {
+  async checkAuthorAvailability(user: User, checkAuthorDto: CheckAuthorDto): Promise<ResponsePayload> {
     try {
       const { authorCode, subTotal } = checkAuthorDto;
 

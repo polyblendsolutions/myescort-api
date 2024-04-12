@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+
 import { DiscountPercentController } from './discount-percent.controller';
 import { DiscountPercentService } from './discount-percent.service';
-import { MongooseModule } from '@nestjs/mongoose';
 import { DiscountPercentSchema } from '../../schema/discount-percent.schema';
 import { ProductSchema } from '../../schema/product.schema';
 

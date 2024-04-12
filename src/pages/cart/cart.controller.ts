@@ -13,13 +13,14 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { AddCartDto, UpdateCartDto, UpdateCartQty } from '../../dto/cart.dto';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
-import { MongoIdValidationPipe } from '../../pipes/mongo-id-validation.pipe';
+
 import { CartService } from './cart.service';
-import { UserJwtAuthGuard } from '../../guards/user-jwt-auth.guard';
-import { User } from '../../interfaces/user/user.interface';
 import { GetTokenUser } from '../../decorator/get-token-user.decorator';
+import { AddCartDto, UpdateCartDto, UpdateCartQty } from '../../dto/cart.dto';
+import { UserJwtAuthGuard } from '../../guards/user-jwt-auth.guard';
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
+import { User } from '../../interfaces/user/user.interface';
+import { MongoIdValidationPipe } from '../../pipes/mongo-id-validation.pipe';
 
 @Controller('cart')
 export class CartController {
@@ -29,10 +30,13 @@ export class CartController {
 
   /**
    * addToCart()
+   *
+   * @param addCartDto
+   * @param user
    */
   @Post('/add-to-cart')
   @UsePipes(ValidationPipe)
-  @UseGuards(UserJwtAuthGuard)  
+  @UseGuards(UserJwtAuthGuard)
   async addToCart(
     @Body()
     addCartDto: AddCartDto,
@@ -54,6 +58,8 @@ export class CartController {
 
   /**
    * getCartByUserId()
+   *
+   * @param user
    */
   @Version(VERSION_NEUTRAL)
   @Get('/get-carts-by-user')
@@ -65,6 +71,9 @@ export class CartController {
 
   /**
    * deleteCartById()
+   *
+   * @param id
+   * @param user
    */
   @Version(VERSION_NEUTRAL)
   @Delete('/delete/:id')
@@ -79,6 +88,9 @@ export class CartController {
 
   /**
    * updateCartDyId()
+   *
+   * @param id
+   * @param updateCartDto
    */
   @Version(VERSION_NEUTRAL)
   @Put('/update/:id')
@@ -94,6 +106,9 @@ export class CartController {
 
   /**
    * updateCartDyId()
+   *
+   * @param id
+   * @param updateCartQty
    */
   @Version(VERSION_NEUTRAL)
   @Put('/update-qty/:id')

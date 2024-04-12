@@ -6,19 +6,20 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../shared/utils/utils.service';
-import { Gallery } from '../../interfaces/gallery/gallery.interface';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../enum/error-code.enum';
+
 import {
   AddGalleryDto,
   FilterAndPaginationGalleryDto,
   OptionGalleryDto,
   UpdateGalleryDto,
 } from '../../dto/gallery.dto';
+import { ErrorCodes } from '../../enum/error-code.enum';
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
+import { Gallery } from '../../interfaces/gallery/gallery.interface';
+import { UtilsService } from '../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -35,6 +36,8 @@ export class GalleryService {
   /**
    * addGallery
    * insertManyGallery
+   *
+   * @param addGalleryDto
    */
   async addGallery(addGalleryDto: AddGalleryDto): Promise<ResponsePayload> {
     const { name } = addGalleryDto;
@@ -83,10 +86,8 @@ export class GalleryService {
       const saveData = await this.galleryModel.insertMany(mData);
       return {
         success: true,
-        data:saveData,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        data: saveData,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       console.log(error);
@@ -101,6 +102,9 @@ export class GalleryService {
   /**
    * getAllGalleries
    * getGalleryById
+   *
+   * @param filterGalleryDto
+   * @param searchQuery
    */
   async getAllGalleries(
     filterGalleryDto: FilterAndPaginationGalleryDto,
@@ -233,11 +237,11 @@ export class GalleryService {
   /**
    * updateGalleryById
    * updateMultipleGalleryById
+   *
+   * @param id
+   * @param updateGalleryDto
    */
-  async updateGalleryById(
-    id: string,
-    updateGalleryDto: UpdateGalleryDto,
-  ): Promise<ResponsePayload> {
+  async updateGalleryById(id: string, updateGalleryDto: UpdateGalleryDto): Promise<ResponsePayload> {
     const { name } = updateGalleryDto;
     let data;
     try {
@@ -268,10 +272,7 @@ export class GalleryService {
     }
   }
 
-  async updateMultipleGalleryById(
-    ids: string[],
-    updateGalleryDto: UpdateGalleryDto,
-  ): Promise<ResponsePayload> {
+  async updateMultipleGalleryById(ids: string[], updateGalleryDto: UpdateGalleryDto): Promise<ResponsePayload> {
     const mIds = ids.map((m) => new ObjectId(m));
 
     // Delete No Multiple Action Data
@@ -280,10 +281,7 @@ export class GalleryService {
     }
 
     try {
-      await this.galleryModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateGalleryDto },
-      );
+      await this.galleryModel.updateMany({ _id: { $in: mIds } }, { $set: updateGalleryDto });
 
       return {
         success: true,
@@ -297,6 +295,8 @@ export class GalleryService {
   /**
    * deleteGalleryById
    * deleteMultipleGalleryById
+   *
+   * @param id
    */
   async deleteGalleryById(id: string): Promise<ResponsePayload> {
     let data;

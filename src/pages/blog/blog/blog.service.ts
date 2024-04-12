@@ -6,13 +6,10 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../../shared/utils/utils.service';
-import { Blog } from '../../../interfaces/common/blog.interface';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../../enum/error-code.enum';
+
 import {
   AddBlogDto,
   CheckBlogDto,
@@ -20,7 +17,11 @@ import {
   OptionBlogDto,
   UpdateBlogDto,
 } from '../../../dto/blog.dto';
+import { ErrorCodes } from '../../../enum/error-code.enum';
+import { Blog } from '../../../interfaces/common/blog.interface';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { User } from '../../../interfaces/user/user.interface';
+import { UtilsService } from '../../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -38,6 +39,8 @@ export class BlogService {
   /**
    * addBlog
    * insertManyBlog
+   *
+   * @param addBlogDto
    */
   async addBlog(addBlogDto: AddBlogDto): Promise<ResponsePayload> {
     const { name } = addBlogDto;
@@ -67,10 +70,7 @@ export class BlogService {
     }
   }
 
-  async insertManyBlog(
-    addBlogsDto: AddBlogDto[],
-    optionBlogDto: OptionBlogDto,
-  ): Promise<ResponsePayload> {
+  async insertManyBlog(addBlogsDto: AddBlogDto[], optionBlogDto: OptionBlogDto): Promise<ResponsePayload> {
     const { deleteMany } = optionBlogDto;
     if (deleteMany) {
       await this.blogModel.deleteMany({});
@@ -87,9 +87,7 @@ export class BlogService {
       const saveData = await this.blogModel.insertMany(mData);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       // console.log(error);
@@ -125,10 +123,7 @@ export class BlogService {
     }
   }
 
-  async getAllBlogs(
-    filterBlogDto: FilterAndPaginationBlogDto,
-    searchQuery?: string,
-  ): Promise<ResponsePayload> {
+  async getAllBlogs(filterBlogDto: FilterAndPaginationBlogDto, searchQuery?: string): Promise<ResponsePayload> {
     const { filter } = filterBlogDto;
     const { pagination } = filterBlogDto;
     const { sort } = filterBlogDto;
@@ -257,11 +252,11 @@ export class BlogService {
   /**
    * updateBlogById
    * updateMultipleBlogById
+   *
+   * @param id
+   * @param updateBlogDto
    */
-  async updateBlogById(
-    id: string,
-    updateBlogDto: UpdateBlogDto,
-  ): Promise<ResponsePayload> {
+  async updateBlogById(id: string, updateBlogDto: UpdateBlogDto): Promise<ResponsePayload> {
     const { name } = updateBlogDto;
     let data;
     try {
@@ -287,17 +282,11 @@ export class BlogService {
     }
   }
 
-  async updateMultipleBlogById(
-    ids: string[],
-    updateBlogDto: UpdateBlogDto,
-  ): Promise<ResponsePayload> {
+  async updateMultipleBlogById(ids: string[], updateBlogDto: UpdateBlogDto): Promise<ResponsePayload> {
     const mIds = ids.map((m) => new ObjectId(m));
 
     try {
-      await this.blogModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateBlogDto },
-      );
+      await this.blogModel.updateMany({ _id: { $in: mIds } }, { $set: updateBlogDto });
 
       return {
         success: true,
@@ -311,11 +300,11 @@ export class BlogService {
   /**
    * deleteBlogById
    * deleteMultipleBlogById
+   *
+   * @param id
+   * @param checkUsage
    */
-  async deleteBlogById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteBlogById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.blogModel.findById(id);
@@ -336,10 +325,7 @@ export class BlogService {
     }
   }
 
-  async deleteMultipleBlogById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleBlogById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       await this.blogModel.deleteMany({ _id: ids });
@@ -356,11 +342,11 @@ export class BlogService {
    * COUPON FUNCTIONS
    * generateOtpWithPhoneNo()
    * validateOtpWithPhoneNo()
+   *
+   * @param user
+   * @param checkBlogDto
    */
-  async checkBlogAvailability(
-    user: User,
-    checkBlogDto: CheckBlogDto,
-  ): Promise<ResponsePayload> {
+  async checkBlogAvailability(user: User, checkBlogDto: CheckBlogDto): Promise<ResponsePayload> {
     try {
       const { blogCode, subTotal } = checkBlogDto;
 

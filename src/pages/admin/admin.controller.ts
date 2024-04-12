@@ -14,7 +14,13 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+
 import { AdminService } from './admin.service';
+import { PASSPORT_ADMIN_TOKEN_TYPE } from '../../core/global-variables';
+import { AdminMetaPermissions } from '../../decorator/admin-permissions.decorator';
+import { AdminMetaRoles } from '../../decorator/admin-roles.decorator';
+import { GetAdmin } from '../../decorator/get-admin.decorator';
 import {
   AdminSelectFieldDto,
   AuthAdminDto,
@@ -22,23 +28,15 @@ import {
   FilterAndPaginationAdminDto,
   UpdateAdminDto,
 } from '../../dto/admin.dto';
-import {
-  Admin,
-  AdminAuthResponse,
-} from '../../interfaces/admin/admin.interface';
-import { AuthGuard } from '@nestjs/passport';
-import { GetAdmin } from '../../decorator/get-admin.decorator';
-import { MongoIdValidationPipe } from '../../pipes/mongo-id-validation.pipe';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
-import { AdminMetaPermissions } from '../../decorator/admin-permissions.decorator';
-import { AdminPermissions } from '../../enum/admin-permission.enum';
-import { AdminPermissionGuard } from '../../guards/admin-permission.guard';
-import { PASSPORT_ADMIN_TOKEN_TYPE } from '../../core/global-variables';
-import { AdminMetaRoles } from '../../decorator/admin-roles.decorator';
-import { AdminRoles } from '../../enum/admin-roles.enum';
-import { AdminRolesGuard } from '../../guards/admin-roles.guard';
-import { AdminJwtAuthGuard } from '../../guards/admin-jwt-auth.guard';
 import { ChangePasswordDto } from '../../dto/change-password.dto';
+import { AdminPermissions } from '../../enum/admin-permission.enum';
+import { AdminRoles } from '../../enum/admin-roles.enum';
+import { AdminJwtAuthGuard } from '../../guards/admin-jwt-auth.guard';
+import { AdminPermissionGuard } from '../../guards/admin-permission.guard';
+import { AdminRolesGuard } from '../../guards/admin-roles.guard';
+import { Admin, AdminAuthResponse } from '../../interfaces/admin/admin.interface';
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
+import { MongoIdValidationPipe } from '../../pipes/mongo-id-validation.pipe';
 
 @Controller('admin')
 export class AdminController {
@@ -67,9 +65,7 @@ export class AdminController {
 
   @Post('/login')
   @UsePipes(ValidationPipe)
-  async adminLogin(
-    @Body() authAdminDto: AuthAdminDto,
-  ): Promise<AdminAuthResponse> {
+  async adminLogin(@Body() authAdminDto: AuthAdminDto): Promise<AdminAuthResponse> {
     return await this.adminService.adminLogin(authAdminDto);
   }
 
@@ -106,10 +102,7 @@ export class AdminController {
     @Query('q') searchString: string,
     @Query(ValidationPipe) adminSelectFieldDto: AdminSelectFieldDto,
   ): Promise<Admin[]> {
-    return this.adminService.getAdminsBySearch(
-      searchString,
-      adminSelectFieldDto,
-    );
+    return this.adminService.getAdminsBySearch(searchString, adminSelectFieldDto);
   }
 
   /**
@@ -142,10 +135,7 @@ export class AdminController {
     @GetAdmin() admin: Admin,
     @Body() updateAdminDto: UpdateAdminDto,
   ): Promise<ResponsePayload> {
-    return await this.adminService.updateLoggedInAdminInfo(
-      admin,
-      updateAdminDto,
-    );
+    return await this.adminService.updateLoggedInAdminInfo(admin, updateAdminDto);
   }
 
   @Version(VERSION_NEUTRAL)
@@ -156,10 +146,7 @@ export class AdminController {
     @GetAdmin() admin: Admin,
     @Body() changePasswordDto: ChangePasswordDto,
   ): Promise<ResponsePayload> {
-    return await this.adminService.changeLoggedInAdminPassword(
-      admin,
-      changePasswordDto,
-    );
+    return await this.adminService.changeLoggedInAdminPassword(admin, changePasswordDto);
   }
 
   @Version(VERSION_NEUTRAL)
@@ -185,13 +172,8 @@ export class AdminController {
   @AdminMetaPermissions(AdminPermissions.EDIT)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async updateMultipleAdminById(
-    @Body() updateAdminDto: UpdateAdminDto,
-  ): Promise<ResponsePayload> {
-    return await this.adminService.updateMultipleAdminById(
-      updateAdminDto.ids,
-      updateAdminDto,
-    );
+  async updateMultipleAdminById(@Body() updateAdminDto: UpdateAdminDto): Promise<ResponsePayload> {
+    return await this.adminService.updateMultipleAdminById(updateAdminDto.ids, updateAdminDto);
   }
 
   @Version(VERSION_NEUTRAL)
@@ -202,9 +184,7 @@ export class AdminController {
   @AdminMetaPermissions(AdminPermissions.DELETE)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async deleteAdminById(
-    @Param('id', MongoIdValidationPipe) id: string,
-  ): Promise<ResponsePayload> {
+  async deleteAdminById(@Param('id', MongoIdValidationPipe) id: string): Promise<ResponsePayload> {
     return await this.adminService.deleteAdminById(id);
   }
 
@@ -216,9 +196,7 @@ export class AdminController {
   @AdminMetaPermissions(AdminPermissions.DELETE)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async deleteMultipleAdminById(
-    @Body() data: { ids: string[] },
-  ): Promise<ResponsePayload> {
+  async deleteMultipleAdminById(@Body() data: { ids: string[] }): Promise<ResponsePayload> {
     return await this.adminService.deleteMultipleAdminById(data.ids);
   }
 }

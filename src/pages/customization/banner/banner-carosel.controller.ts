@@ -14,13 +14,11 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
-import { AdminRoles } from '../../../enum/admin-roles.enum';
-import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
+
+import { BannerCaroselService } from './banner-carosel.service';
 import { AdminMetaPermissions } from '../../../decorator/admin-permissions.decorator';
-import { AdminPermissions } from '../../../enum/admin-permission.enum';
-import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
-import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
+import { GetTokenUser } from '../../../decorator/get-token-user.decorator';
 import {
   AddBannerCaroselDto,
   CheckBannerCaroselDto,
@@ -28,12 +26,15 @@ import {
   OptionBannerCaroselDto,
   UpdateBannerCaroselDto,
 } from '../../../dto/banner-carosel.dto';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
-import { BannerCaroselService } from './banner-carosel.service';
+import { AdminPermissions } from '../../../enum/admin-permission.enum';
+import { AdminRoles } from '../../../enum/admin-roles.enum';
+import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
+import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
 import { UserJwtAuthGuard } from '../../../guards/user-jwt-auth.guard';
-import { GetTokenUser } from '../../../decorator/get-token-user.decorator';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { User } from '../../../interfaces/user/user.interface';
+import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
 
 @Controller('banner-carousel')
 export class BannerCaroselController {
@@ -44,6 +45,8 @@ export class BannerCaroselController {
   /**
    * addBannerCarosel
    * insertManyBannerCarosel
+   *
+   * @param addBannerCaroselDto
    */
   @Post('/add')
   // @UsePipes(ValidationPipe)
@@ -79,6 +82,9 @@ export class BannerCaroselController {
   /**
    * getAllBannerCarosels
    * getBannerCaroselById
+   *
+   * @param filterBannerCaroselDto
+   * @param searchString
    */
   @Version(VERSION_NEUTRAL)
   @Post('/get-all')
@@ -108,6 +114,9 @@ export class BannerCaroselController {
   /**
    * updateBannerCaroselById
    * updateMultipleBannerCaroselById
+   *
+   * @param id
+   * @param updateBannerCaroselDto
    */
   @Version(VERSION_NEUTRAL)
   @Put('/update/:id')
@@ -144,6 +153,9 @@ export class BannerCaroselController {
   /**
    * deleteBannerCaroselById
    * deleteMultipleBannerCaroselById
+   *
+   * @param id
+   * @param checkUsage
    */
   @Version(VERSION_NEUTRAL)
   @Delete('/delete/:id')
@@ -172,10 +184,7 @@ export class BannerCaroselController {
     @Body() data: { ids: string[] },
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.bannerCaroselService.deleteMultipleBannerCaroselById(
-      data.ids,
-      Boolean(checkUsage),
-    );
+    return await this.bannerCaroselService.deleteMultipleBannerCaroselById(data.ids, Boolean(checkUsage));
   }
 
   @Post('/check-bannerCarosel-availability')
@@ -185,9 +194,6 @@ export class BannerCaroselController {
     @GetTokenUser() user: User,
     @Body() checkBannerCaroselDto: CheckBannerCaroselDto,
   ): Promise<ResponsePayload> {
-    return await this.bannerCaroselService.checkBannerCaroselAvailability(
-      user,
-      checkBannerCaroselDto,
-    );
+    return await this.bannerCaroselService.checkBannerCaroselAvailability(user, checkBannerCaroselDto);
   }
 }

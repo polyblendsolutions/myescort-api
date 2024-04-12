@@ -6,13 +6,10 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../../shared/utils/utils.service';
-import { Carousel } from '../../../interfaces/common/carousel.interface';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../../enum/error-code.enum';
+
 import {
   AddCarouselDto,
   CheckCarouselDto,
@@ -20,7 +17,11 @@ import {
   OptionCarouselDto,
   UpdateCarouselDto,
 } from '../../../dto/carousel.dto';
+import { ErrorCodes } from '../../../enum/error-code.enum';
+import { Carousel } from '../../../interfaces/common/carousel.interface';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { User } from '../../../interfaces/user/user.interface';
+import { UtilsService } from '../../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -38,6 +39,8 @@ export class CarouselService {
   /**
    * addCarousel
    * insertManyCarousel
+   *
+   * @param addCarouselDto
    */
   async addCarousel(addCarouselDto: AddCarouselDto): Promise<ResponsePayload> {
     const { name } = addCarouselDto;
@@ -87,9 +90,7 @@ export class CarouselService {
       const saveData = await this.carouselModel.insertMany(mData);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       // console.log(error);
@@ -217,9 +218,7 @@ export class CarouselService {
     }
 
     try {
-      const dataAggregates = await this.carouselModel.aggregate(
-        aggregateScarouseles,
-      );
+      const dataAggregates = await this.carouselModel.aggregate(aggregateScarouseles);
       if (pagination) {
         return {
           ...{ ...dataAggregates[0] },
@@ -259,11 +258,11 @@ export class CarouselService {
   /**
    * updateCarouselById
    * updateMultipleCarouselById
+   *
+   * @param id
+   * @param updateCarouselDto
    */
-  async updateCarouselById(
-    id: string,
-    updateCarouselDto: UpdateCarouselDto,
-  ): Promise<ResponsePayload> {
+  async updateCarouselById(id: string, updateCarouselDto: UpdateCarouselDto): Promise<ResponsePayload> {
     const { name } = updateCarouselDto;
     let data;
     try {
@@ -289,17 +288,11 @@ export class CarouselService {
     }
   }
 
-  async updateMultipleCarouselById(
-    ids: string[],
-    updateCarouselDto: UpdateCarouselDto,
-  ): Promise<ResponsePayload> {
+  async updateMultipleCarouselById(ids: string[], updateCarouselDto: UpdateCarouselDto): Promise<ResponsePayload> {
     const mIds = ids.map((m) => new ObjectId(m));
 
     try {
-      await this.carouselModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateCarouselDto },
-      );
+      await this.carouselModel.updateMany({ _id: { $in: mIds } }, { $set: updateCarouselDto });
 
       return {
         success: true,
@@ -313,11 +306,11 @@ export class CarouselService {
   /**
    * deleteCarouselById
    * deleteMultipleCarouselById
+   *
+   * @param id
+   * @param checkUsage
    */
-  async deleteCarouselById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteCarouselById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.carouselModel.findById(id);
@@ -338,10 +331,7 @@ export class CarouselService {
     }
   }
 
-  async deleteMultipleCarouselById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleCarouselById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       await this.carouselModel.deleteMany({ _id: ids });
@@ -358,11 +348,11 @@ export class CarouselService {
    * COUPON FUNCTIONS
    * generateOtpWithPhoneNo()
    * validateOtpWithPhoneNo()
+   *
+   * @param user
+   * @param checkCarouselDto
    */
-  async checkCarouselAvailability(
-    user: User,
-    checkCarouselDto: CheckCarouselDto,
-  ): Promise<ResponsePayload> {
+  async checkCarouselAvailability(user: User, checkCarouselDto: CheckCarouselDto): Promise<ResponsePayload> {
     try {
       const { carouselCode, subTotal } = checkCarouselDto;
 

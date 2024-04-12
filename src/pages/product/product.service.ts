@@ -8,13 +8,12 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../shared/utils/utils.service';
-import { Product } from '../../interfaces/common/product.interface';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../enum/error-code.enum';
+import { InjectModel } from '@nestjs/mongoose';
+import { Cache } from 'cache-manager';
+import { Model, Types } from 'mongoose';
+import { ListingStatus } from 'src/enum/listing-status.enum';
+
 import {
   AddProductDto,
   FilterAndPaginationProductDto,
@@ -22,9 +21,11 @@ import {
   OptionProductDto,
   UpdateProductDto,
 } from '../../dto/product.dto';
-import { Cache } from 'cache-manager';
+import { ErrorCodes } from '../../enum/error-code.enum';
+import { Product } from '../../interfaces/common/product.interface';
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 import { User } from '../../interfaces/user/user.interface';
-import { ListingStatus } from 'src/enum/listing-status.enum';
+import { UtilsService } from '../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -45,6 +46,8 @@ export class ProductService {
   /**
    * addProduct
    * insertManyProduct
+   *
+   * @param addProductDto
    */
   async addProduct(addProductDto: AddProductDto): Promise<ResponsePayload> {
     try {
@@ -83,14 +86,13 @@ export class ProductService {
     }
   }
 
-  async addProductByUser(
-    user: User,
-    addProductDto: AddProductDto,
-  ): Promise<ResponsePayload> {
+  async addProductByUser(user: User, addProductDto: AddProductDto): Promise<ResponsePayload> {
     try {
       const fData = await this.productModel.findOne({
         'user._id': user._id,
-        publishDate: {$gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, new Date().getDate())}
+        publishDate: {
+          $gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, new Date().getDate()),
+        },
       });
       if (fData) {
         return {
@@ -106,7 +108,11 @@ export class ProductService {
           quantity: quantity ? quantity : 0,
           user: fUser,
         };
-        const mData = { ...addProductDto, ...defaultData, publishDate: new Date() };
+        const mData = {
+          ...addProductDto,
+          ...defaultData,
+          publishDate: new Date(),
+        };
         const newData = new this.productModel(mData);
         console.log('mdar', newData);
 
@@ -137,10 +143,7 @@ export class ProductService {
       const jData = JSON.stringify(data);
       const product = JSON.parse(jData);
 
-      product.name = `${product.name}(Clone-${this.utilsService.getRandomInt(
-        0,
-        100,
-      )})`;
+      product.name = `${product.name}(Clone-${this.utilsService.getRandomInt(0, 100)})`;
       product.slug = this.utilsService.transformToSlug(product.name, true);
       product.sku = `${product.sku}-${this.utilsService.getRandomInt(0, 100)}`;
       product.quantity = 0;
@@ -202,9 +205,7 @@ export class ProductService {
 
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       console.log(error);
@@ -219,6 +220,9 @@ export class ProductService {
   /**
    * getAllProducts
    * getProductById
+   *
+   * @param filterProductDto
+   * @param searchQuery
    */
   async getAllProducts(
     filterProductDto: FilterAndPaginationProductDto,
@@ -311,17 +315,17 @@ export class ProductService {
               { 'division.name': new RegExp(searchQuery, 'i') },
               { 'zone.name': new RegExp(searchQuery, 'i') },
               { 'area.name': new RegExp(searchQuery, 'i') },
-              { 'age': new RegExp(searchQuery, 'i') },
-              { 'height': new RegExp(searchQuery, 'i') },
-              { 'weight': new RegExp(searchQuery, 'i') },
+              { age: new RegExp(searchQuery, 'i') },
+              { height: new RegExp(searchQuery, 'i') },
+              { weight: new RegExp(searchQuery, 'i') },
               { 'bodyType.name': new RegExp(searchQuery, 'i') },
-              { 'shortDescription': new RegExp(searchQuery, 'i') },
-              { 'address': new RegExp(searchQuery, 'i') },
+              { shortDescription: new RegExp(searchQuery, 'i') },
+              { address: new RegExp(searchQuery, 'i') },
               { 'hairColor.name': new RegExp(searchQuery, 'i') },
               { 'orientation.name': new RegExp(searchQuery, 'i') },
               { 'intimateHair.name': new RegExp(searchQuery, 'i') },
-              { 'phone': new RegExp(searchQuery, 'i') },
-              { 'whatsApp': new RegExp(searchQuery, 'i') },
+              { phone: new RegExp(searchQuery, 'i') },
+              { whatsApp: new RegExp(searchQuery, 'i') },
             ],
           },
         ],
@@ -483,8 +487,12 @@ export class ProductService {
     }
 
     try {
-      aggregateStages[0]['$match']['publishDate'] = {}
-      aggregateStages[0]['$match']['publishDate']['$gte'] = new Date(new Date().getFullYear(), new Date().getMonth() - 1, new Date().getDate());
+      aggregateStages[0]['$match']['publishDate'] = {};
+      aggregateStages[0]['$match']['publishDate']['$gte'] = new Date(
+        new Date().getFullYear(),
+        new Date().getMonth() - 1,
+        new Date().getDate(),
+      );
       // Main
       const dataAggregates = await this.productModel.aggregate(aggregateStages);
 
@@ -495,69 +503,41 @@ export class ProductService {
       let publisherAggregates;
       // Category
       if (filterGroup && filterGroup.isGroup && filterGroup.category) {
-        categoryAggregates = await this.productModel.aggregate(
-          aggregateCategoryGroupStages,
-        );
+        categoryAggregates = await this.productModel.aggregate(aggregateCategoryGroupStages);
       }
 
       // Sub Category
       if (filterGroup && filterGroup.isGroup && filterGroup.subCategory) {
-        subCategoryAggregates = await this.productModel.aggregate(
-          aggregateSubCategoryGroupStages,
-        );
+        subCategoryAggregates = await this.productModel.aggregate(aggregateSubCategoryGroupStages);
       }
 
       // Brand
       if (filterGroup && filterGroup.isGroup && filterGroup.brand) {
-        brandAggregates = await this.productModel.aggregate(
-          aggregateBrandGroupStages,
-        );
+        brandAggregates = await this.productModel.aggregate(aggregateBrandGroupStages);
       }
 
       // Publisher
       if (filterGroup && filterGroup.isGroup && filterGroup.publisher) {
-        publisherAggregates = await this.productModel.aggregate(
-          aggregatePublisherGroupStages,
-        );
+        publisherAggregates = await this.productModel.aggregate(aggregatePublisherGroupStages);
       }
 
       // Main Filter Data
       let allFilterGroups;
       if (filterGroup && filterGroup.isGroup) {
         allFilterGroups = {
-          categories:
-            categoryAggregates && categoryAggregates.length
-              ? categoryAggregates
-              : [],
-          subCategories:
-            subCategoryAggregates && subCategoryAggregates.length
-              ? subCategoryAggregates
-              : [],
-          brands:
-            brandAggregates && brandAggregates.length ? brandAggregates : [],
-          publishers:
-            publisherAggregates && publisherAggregates.length
-              ? publisherAggregates
-              : [],
+          categories: categoryAggregates && categoryAggregates.length ? categoryAggregates : [],
+          subCategories: subCategoryAggregates && subCategoryAggregates.length ? subCategoryAggregates : [],
+          brands: brandAggregates && brandAggregates.length ? brandAggregates : [],
+          publishers: publisherAggregates && publisherAggregates.length ? publisherAggregates : [],
         };
       } else {
         allFilterGroups = null;
       }
 
       if (pagination) {
-        if (
-          pagination.currentPage < 1 &&
-          filter == null &&
-          JSON.stringify(sort) == JSON.stringify({ createdAt: -1 })
-        ) {
-          await this.cacheManager.set(
-            this.cacheProductPage,
-            dataAggregates[0].data,
-          );
-          await this.cacheManager.set(
-            this.cacheProductCount,
-            dataAggregates[0].count,
-          );
+        if (pagination.currentPage < 1 && filter == null && JSON.stringify(sort) == JSON.stringify({ createdAt: -1 })) {
+          await this.cacheManager.set(this.cacheProductPage, dataAggregates[0].data);
+          await this.cacheManager.set(this.cacheProductCount, dataAggregates[0].count);
           this.logger.log('Cache Added');
         }
 
@@ -591,10 +571,7 @@ export class ProductService {
 
   async getProductById(id: string, select: string): Promise<ResponsePayload> {
     try {
-      const data = await this.productModel
-        .findById(id)
-        .select(select)
-        .populate('tags');
+      const data = await this.productModel.findById(id).select(select).populate('tags');
 
       return {
         success: true,
@@ -606,16 +583,10 @@ export class ProductService {
     }
   }
 
-  async getProductBySlug(
-    slug: string,
-    select: string,
-  ): Promise<ResponsePayload> {
+  async getProductBySlug(slug: string, select: string): Promise<ResponsePayload> {
     try {
       console.log('slug', slug);
-      const data = await this.productModel
-        .findOne({ slug: slug })
-        .select(select)
-        .populate('tags');
+      const data = await this.productModel.findOne({ slug: slug }).select(select).populate('tags');
 
       return {
         success: true,
@@ -627,10 +598,7 @@ export class ProductService {
     }
   }
 
-  async getProductByIds(
-    getProductByIdsDto: GetProductByIdsDto,
-    select: string,
-  ): Promise<ResponsePayload> {
+  async getProductByIds(getProductByIdsDto: GetProductByIdsDto, select: string): Promise<ResponsePayload> {
     try {
       const mIds = getProductByIdsDto.ids.map((m) => new ObjectId(m));
       const data = await this.productModel.find({ _id: { $in: mIds } });
@@ -649,11 +617,11 @@ export class ProductService {
    * updateProductById
    * updateMultipleProductById
    * updateUserProductById
+   *
+   * @param id
+   * @param updateProductDto
    */
-  async updateProductById(
-    id: string,
-    updateProductDto: UpdateProductDto,
-  ): Promise<ResponsePayload> {
+  async updateProductById(id: string, updateProductDto: UpdateProductDto): Promise<ResponsePayload> {
     const { name } = updateProductDto;
     let data;
     try {
@@ -691,11 +659,7 @@ export class ProductService {
     }
   }
 
-  async updateUserProductById(
-    user: User,
-    id: string,
-    updateProductDto: UpdateProductDto,
-  ): Promise<ResponsePayload> {
+  async updateUserProductById(user: User, id: string, updateProductDto: UpdateProductDto): Promise<ResponsePayload> {
     const { name } = updateProductDto;
     let data;
     try {
@@ -714,9 +678,9 @@ export class ProductService {
           finalData.slug = this.utilsService.transformToSlug(name, true);
           finalData.quantity = finalData.quantity ? finalData.quantity : 0;
         }
-        if(finalData['status'] === ListingStatus.publish){
-          finalData['publishDate'] = new Date();
-        }
+      if (finalData['status'] === ListingStatus.publish) {
+        finalData['publishDate'] = new Date();
+      }
       await this.productModel.findByIdAndUpdate(id, {
         $set: finalData,
       });
@@ -730,10 +694,7 @@ export class ProductService {
     }
   }
 
-  async updateMultipleProductById(
-    ids: string[],
-    updateProductDto: UpdateProductDto,
-  ): Promise<ResponsePayload> {
+  async updateMultipleProductById(ids: string[], updateProductDto: UpdateProductDto): Promise<ResponsePayload> {
     const mIds = ids.map((m) => new ObjectId(m));
 
     // Delete No Multiple Action Data
@@ -742,10 +703,7 @@ export class ProductService {
     }
 
     try {
-      await this.productModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateProductDto },
-      );
+      await this.productModel.updateMany({ _id: { $in: mIds } }, { $set: updateProductDto });
 
       // Cache Removed
       await this.cacheManager.del(this.cacheProductPage);
@@ -764,6 +722,8 @@ export class ProductService {
   /**
    * deleteProductById
    * deleteMultipleProductById
+   *
+   * @param id
    */
   async deleteProductById(id: string): Promise<ResponsePayload> {
     let data;
@@ -792,10 +752,7 @@ export class ProductService {
     }
   }
 
-  async deleteUserProductById(
-    user: User,
-    id: string,
-  ): Promise<ResponsePayload> {
+  async deleteUserProductById(user: User, id: string): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.productModel.findOne({ _id: id, 'user._id': user._id });
