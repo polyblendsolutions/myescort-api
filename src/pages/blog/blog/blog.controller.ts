@@ -14,13 +14,11 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
-import { AdminRoles } from '../../../enum/admin-roles.enum';
-import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
+
+import { BlogService } from './blog.service';
 import { AdminMetaPermissions } from '../../../decorator/admin-permissions.decorator';
-import { AdminPermissions } from '../../../enum/admin-permission.enum';
-import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
-import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
+import { GetTokenUser } from '../../../decorator/get-token-user.decorator';
 import {
   AddBlogDto,
   CheckBlogDto,
@@ -28,12 +26,15 @@ import {
   OptionBlogDto,
   UpdateBlogDto,
 } from '../../../dto/blog.dto';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
-import { BlogService } from './blog.service';
+import { AdminPermissions } from '../../../enum/admin-permission.enum';
+import { AdminRoles } from '../../../enum/admin-roles.enum';
+import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
+import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
 import { UserJwtAuthGuard } from '../../../guards/user-jwt-auth.guard';
-import { GetTokenUser } from '../../../decorator/get-token-user.decorator';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { User } from '../../../interfaces/user/user.interface';
+import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
 
 @Controller('blog')
 export class BlogController {
@@ -44,6 +45,8 @@ export class BlogController {
   /**
    * addBlog
    * insertManyBlog
+   *
+   * @param addBlogDto
    */
   @Post('/add')
   // @UsePipes(ValidationPipe)
@@ -79,6 +82,9 @@ export class BlogController {
   /**
    * getAllBlogs
    * getBlogById
+   *
+   * @param filterBlogDto
+   * @param searchString
    */
   @Version(VERSION_NEUTRAL)
   @Post('/get-all')
@@ -98,16 +104,16 @@ export class BlogController {
 
   @Version(VERSION_NEUTRAL)
   @Get('/:id')
-  async getBlogById(
-    @Param('id', MongoIdValidationPipe) id: string,
-    @Query() select: string,
-  ): Promise<ResponsePayload> {
+  async getBlogById(@Param('id', MongoIdValidationPipe) id: string, @Query() select: string): Promise<ResponsePayload> {
     return await this.blogService.getBlogById(id, select);
   }
 
   /**
    * updateBlogById
    * updateMultipleBlogById
+   *
+   * @param id
+   * @param updateBlogDto
    */
   @Version(VERSION_NEUTRAL)
   @Put('/update/:id')
@@ -132,18 +138,16 @@ export class BlogController {
   @AdminMetaPermissions(AdminPermissions.EDIT)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async updateMultipleBlogById(
-    @Body() updateBlogDto: UpdateBlogDto,
-  ): Promise<ResponsePayload> {
-    return await this.blogService.updateMultipleBlogById(
-      updateBlogDto.ids,
-      updateBlogDto,
-    );
+  async updateMultipleBlogById(@Body() updateBlogDto: UpdateBlogDto): Promise<ResponsePayload> {
+    return await this.blogService.updateMultipleBlogById(updateBlogDto.ids, updateBlogDto);
   }
 
   /**
    * deleteBlogById
    * deleteMultipleBlogById
+   *
+   * @param id
+   * @param checkUsage
    */
   @Version(VERSION_NEUTRAL)
   @Delete('/delete/:id')
@@ -172,10 +176,7 @@ export class BlogController {
     @Body() data: { ids: string[] },
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.blogService.deleteMultipleBlogById(
-      data.ids,
-      Boolean(checkUsage),
-    );
+    return await this.blogService.deleteMultipleBlogById(data.ids, Boolean(checkUsage));
   }
 
   @Post('/check-profile-availability')

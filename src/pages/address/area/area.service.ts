@@ -8,15 +8,11 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
+
+import { AddAreaDto, FilterAndPaginationAreaDto, OptionAreaDto, UpdateAreaDto } from '../../../dto/area.dto';
 import { ErrorCodes } from '../../../enum/error-code.enum';
-import {
-  AddAreaDto,
-  FilterAndPaginationAreaDto,
-  OptionAreaDto,
-  UpdateAreaDto,
-} from '../../../dto/area.dto';
 import { Area } from '../../../interfaces/common/area.interface';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 
 const ObjectId = Types.ObjectId;
 
@@ -40,6 +36,8 @@ export class AreaService {
    * updateMultipleAreaById()
    * deleteAreaById()
    * deleteMultipleAreaById()
+   *
+   * @param addAreaDto
    */
   async addArea(addAreaDto: AddAreaDto): Promise<ResponsePayload> {
     const newData = new this.areaModel(addAreaDto);
@@ -63,10 +61,7 @@ export class AreaService {
     }
   }
 
-  async insertManyArea(
-    addAreasDto: AddAreaDto[],
-    optionAreaDto: OptionAreaDto,
-  ): Promise<ResponsePayload> {
+  async insertManyArea(addAreasDto: AddAreaDto[], optionAreaDto: OptionAreaDto): Promise<ResponsePayload> {
     try {
       const { deleteMany } = optionAreaDto;
       if (deleteMany) {
@@ -75,9 +70,7 @@ export class AreaService {
       const saveData = await this.areaModel.insertMany(addAreasDto);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       console.log(error);
@@ -89,10 +82,7 @@ export class AreaService {
     }
   }
 
-  async getAllAreas(
-    filterAreaDto: FilterAndPaginationAreaDto,
-    searchQuery?: string,
-  ): Promise<ResponsePayload> {
+  async getAllAreas(filterAreaDto: FilterAndPaginationAreaDto, searchQuery?: string): Promise<ResponsePayload> {
     const { filter } = filterAreaDto;
     const { pagination } = filterAreaDto;
     const { sort } = filterAreaDto;
@@ -203,14 +193,9 @@ export class AreaService {
     }
   }
 
-  async getAreaByParentId(
-    id: string,
-    select: string,
-  ): Promise<ResponsePayload> {
+  async getAreaByParentId(id: string, select: string): Promise<ResponsePayload> {
     try {
-      const data = await this.areaModel
-        .find({ 'division._id': id })
-        .select(select);
+      const data = await this.areaModel.find({ 'division._id': id }).select(select);
       return {
         success: true,
         message: 'Success',
@@ -235,10 +220,7 @@ export class AreaService {
     }
   }
 
-  async updateAreaById(
-    id: string,
-    updateAreaDto: UpdateAreaDto,
-  ): Promise<ResponsePayload> {
+  async updateAreaById(id: string, updateAreaDto: UpdateAreaDto): Promise<ResponsePayload> {
     try {
       await this.areaModel.findByIdAndUpdate(id, {
         $set: updateAreaDto,
@@ -252,16 +234,10 @@ export class AreaService {
     }
   }
 
-  async updateMultipleAreaById(
-    ids: string[],
-    updateAreaDto: UpdateAreaDto,
-  ): Promise<ResponsePayload> {
+  async updateMultipleAreaById(ids: string[], updateAreaDto: UpdateAreaDto): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
-      await this.areaModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateAreaDto },
-      );
+      await this.areaModel.updateMany({ _id: { $in: mIds } }, { $set: updateAreaDto });
 
       return {
         success: true,
@@ -272,10 +248,7 @@ export class AreaService {
     }
   }
 
-  async deleteAreaById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteAreaById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.areaModel.findById(id);
@@ -303,10 +276,7 @@ export class AreaService {
     }
   }
 
-  async deleteMultipleAreaById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleAreaById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       await this.areaModel.deleteMany({ _id: mIds });

@@ -6,13 +6,10 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../../shared/utils/utils.service';
-import { Coupon } from '../../../interfaces/common/coupon.interface';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../../enum/error-code.enum';
+
 import {
   AddCouponDto,
   CheckCouponDto,
@@ -20,7 +17,11 @@ import {
   OptionCouponDto,
   UpdateCouponDto,
 } from '../../../dto/coupon.dto';
+import { ErrorCodes } from '../../../enum/error-code.enum';
+import { Coupon } from '../../../interfaces/common/coupon.interface';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { User } from '../../../interfaces/user/user.interface';
+import { UtilsService } from '../../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -38,6 +39,8 @@ export class CouponService {
   /**
    * addCoupon
    * insertManyCoupon
+   *
+   * @param addCouponDto
    */
   async addCoupon(addCouponDto: AddCouponDto): Promise<ResponsePayload> {
     const { name } = addCouponDto;
@@ -67,10 +70,7 @@ export class CouponService {
     }
   }
 
-  async insertManyCoupon(
-    addCouponsDto: AddCouponDto[],
-    optionCouponDto: OptionCouponDto,
-  ): Promise<ResponsePayload> {
+  async insertManyCoupon(addCouponsDto: AddCouponDto[], optionCouponDto: OptionCouponDto): Promise<ResponsePayload> {
     const { deleteMany } = optionCouponDto;
     if (deleteMany) {
       await this.couponModel.deleteMany({});
@@ -87,9 +87,7 @@ export class CouponService {
       const saveData = await this.couponModel.insertMany(mData);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       // console.log(error);
@@ -123,10 +121,7 @@ export class CouponService {
     }
   }
 
-  async getAllCoupons(
-    filterCouponDto: FilterAndPaginationCouponDto,
-    searchQuery?: string,
-  ): Promise<ResponsePayload> {
+  async getAllCoupons(filterCouponDto: FilterAndPaginationCouponDto, searchQuery?: string): Promise<ResponsePayload> {
     const { filter } = filterCouponDto;
     const { pagination } = filterCouponDto;
     const { sort } = filterCouponDto;
@@ -213,9 +208,7 @@ export class CouponService {
     }
 
     try {
-      const dataAggregates = await this.couponModel.aggregate(
-        aggregateScoupones,
-      );
+      const dataAggregates = await this.couponModel.aggregate(aggregateScoupones);
       if (pagination) {
         return {
           ...{ ...dataAggregates[0] },
@@ -255,11 +248,11 @@ export class CouponService {
   /**
    * updateCouponById
    * updateMultipleCouponById
+   *
+   * @param id
+   * @param updateCouponDto
    */
-  async updateCouponById(
-    id: string,
-    updateCouponDto: UpdateCouponDto,
-  ): Promise<ResponsePayload> {
+  async updateCouponById(id: string, updateCouponDto: UpdateCouponDto): Promise<ResponsePayload> {
     const { name } = updateCouponDto;
     let data;
     try {
@@ -285,17 +278,11 @@ export class CouponService {
     }
   }
 
-  async updateMultipleCouponById(
-    ids: string[],
-    updateCouponDto: UpdateCouponDto,
-  ): Promise<ResponsePayload> {
+  async updateMultipleCouponById(ids: string[], updateCouponDto: UpdateCouponDto): Promise<ResponsePayload> {
     const mIds = ids.map((m) => new ObjectId(m));
 
     try {
-      await this.couponModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateCouponDto },
-      );
+      await this.couponModel.updateMany({ _id: { $in: mIds } }, { $set: updateCouponDto });
 
       return {
         success: true,
@@ -309,11 +296,11 @@ export class CouponService {
   /**
    * deleteCouponById
    * deleteMultipleCouponById
+   *
+   * @param id
+   * @param checkUsage
    */
-  async deleteCouponById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteCouponById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.couponModel.findById(id);
@@ -334,10 +321,7 @@ export class CouponService {
     }
   }
 
-  async deleteMultipleCouponById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleCouponById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       await this.couponModel.deleteMany({ _id: ids });
@@ -354,22 +338,18 @@ export class CouponService {
    * COUPON FUNCTIONS
    * generateOtpWithPhoneNo()
    * validateOtpWithPhoneNo()
+   *
+   * @param user
+   * @param checkCouponDto
    */
-  async checkCouponAvailability(
-    user: User,
-    checkCouponDto: CheckCouponDto,
-  ): Promise<ResponsePayload> {
+  async checkCouponAvailability(user: User, checkCouponDto: CheckCouponDto): Promise<ResponsePayload> {
     try {
       const { couponCode, subTotal } = checkCouponDto;
 
       const couponData = await this.couponModel.findOne({ couponCode });
 
       if (couponData) {
-        const isExpired = this.utilsService.getDateDifference(
-          new Date(),
-          new Date(couponData.endDateTime),
-          'seconds',
-        );
+        const isExpired = this.utilsService.getDateDifference(new Date(), new Date(couponData.endDateTime), 'seconds');
 
         const isStartDate = this.utilsService.getDateDifference(
           new Date(),

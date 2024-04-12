@@ -6,20 +6,21 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../../shared/utils/utils.service';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../../enum/error-code.enum';
-import { PromoOffer } from '../../../interfaces/common/promo-offer.interface';
+
 import {
   AddPromoOfferDto,
   FilterAndPaginationPromoOfferDto,
   OptionPromoOfferDto,
   UpdatePromoOfferDto,
 } from '../../../dto/promo-offer.dto';
+import { ErrorCodes } from '../../../enum/error-code.enum';
+import { PromoOffer } from '../../../interfaces/common/promo-offer.interface';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { JobSchedulerService } from '../../../shared/job-scheduler/job-scheduler.service';
+import { UtilsService } from '../../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -38,10 +39,10 @@ export class PromoOfferService {
   /**
    * addPromoOffer
    * insertManyPromoOffer
+   *
+   * @param addPromoOfferDto
    */
-  async addPromoOffer(
-    addPromoOfferDto: AddPromoOfferDto,
-  ): Promise<ResponsePayload> {
+  async addPromoOffer(addPromoOfferDto: AddPromoOfferDto): Promise<ResponsePayload> {
     try {
       const { title } = addPromoOfferDto;
       const { products } = addPromoOfferDto;
@@ -69,17 +70,9 @@ export class PromoOfferService {
       /**
        * SCHEDULE DATE
        */
-      const isStartDate = this.utilsService.getDateDifference(
-        new Date(),
-        new Date(startDateTime),
-        'seconds',
-      );
+      const isStartDate = this.utilsService.getDateDifference(new Date(), new Date(startDateTime), 'seconds');
 
-      const isEndDate = this.utilsService.getDateDifference(
-        new Date(),
-        new Date(endDateTime),
-        'seconds',
-      );
+      const isEndDate = this.utilsService.getDateDifference(new Date(), new Date(endDateTime), 'seconds');
 
       if (isEndDate <= 0) {
         console.log('isEndDate is past date');
@@ -89,12 +82,7 @@ export class PromoOfferService {
         } as ResponsePayload;
       } else {
         console.log('isEndDate is future date');
-        this.jobSchedulerService.addOfferScheduleOnEnd(
-          true,
-          saveData._id,
-          endDateTime,
-          products,
-        );
+        this.jobSchedulerService.addOfferScheduleOnEnd(true, saveData._id, endDateTime, products);
       }
 
       if (isStartDate <= 0) {
@@ -103,12 +91,7 @@ export class PromoOfferService {
         await this.utilsService.updateProductsOnOfferStart(products);
       } else {
         console.log('isStartDate is future date');
-        this.jobSchedulerService.addOfferScheduleOnStart(
-          true,
-          saveData._id,
-          startDateTime,
-          products,
-        );
+        this.jobSchedulerService.addOfferScheduleOnStart(true, saveData._id, startDateTime, products);
       }
 
       return {
@@ -146,9 +129,7 @@ export class PromoOfferService {
       const saveData = await this.promoOfferModel.insertMany(mData);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       // console.log(error);
@@ -163,6 +144,9 @@ export class PromoOfferService {
   /**
    * getAllPromoOffers
    * getPromoOfferById
+   *
+   * @param filterPromoOfferDto
+   * @param searchQuery
    */
   async getAllPromoOffers(
     filterPromoOfferDto: FilterAndPaginationPromoOfferDto,
@@ -254,9 +238,7 @@ export class PromoOfferService {
     }
 
     try {
-      const dataAggregates = await this.promoOfferModel.aggregate(
-        aggregateStages,
-      );
+      const dataAggregates = await this.promoOfferModel.aggregate(aggregateStages);
       if (pagination) {
         return {
           ...{ ...dataAggregates[0] },
@@ -280,15 +262,9 @@ export class PromoOfferService {
     }
   }
 
-  async getPromoOfferById(
-    id: string,
-    select: string,
-  ): Promise<ResponsePayload> {
+  async getPromoOfferById(id: string, select: string): Promise<ResponsePayload> {
     try {
-      const data = await this.promoOfferModel
-        .findById(id)
-        .populate('products.product')
-        .select(select);
+      const data = await this.promoOfferModel.findById(id).populate('products.product').select(select);
 
       return {
         success: true,
@@ -320,11 +296,11 @@ export class PromoOfferService {
   /**
    * updatePromoOfferById
    * updateMultiplePromoOfferById
+   *
+   * @param id
+   * @param updatePromoOfferDto
    */
-  async updatePromoOfferById(
-    id: string,
-    updatePromoOfferDto: UpdatePromoOfferDto,
-  ): Promise<ResponsePayload> {
+  async updatePromoOfferById(id: string, updatePromoOfferDto: UpdatePromoOfferDto): Promise<ResponsePayload> {
     try {
       const { title } = updatePromoOfferDto;
       const { products } = updatePromoOfferDto;
@@ -342,29 +318,17 @@ export class PromoOfferService {
       }
 
       // CANCEL EXISTING JOB SCHEDULE
-      const jobNameStart = this.configService.get<string>(
-        'promoOfferScheduleOnStart',
-      );
-      const jobNameEnd = this.configService.get<string>(
-        'promoOfferScheduleOnEnd',
-      );
+      const jobNameStart = this.configService.get<string>('promoOfferScheduleOnStart');
+      const jobNameEnd = this.configService.get<string>('promoOfferScheduleOnEnd');
       await this.jobSchedulerService.cancelOfferJobScheduler(jobNameStart);
       await this.jobSchedulerService.cancelOfferJobScheduler(jobNameEnd);
 
       /**
        * NEW SCHEDULE DATE
        */
-      const isStartDate = this.utilsService.getDateDifference(
-        new Date(),
-        new Date(startDateTime),
-        'seconds',
-      );
+      const isStartDate = this.utilsService.getDateDifference(new Date(), new Date(startDateTime), 'seconds');
 
-      const isEndDate = this.utilsService.getDateDifference(
-        new Date(),
-        new Date(endDateTime),
-        'seconds',
-      );
+      const isEndDate = this.utilsService.getDateDifference(new Date(), new Date(endDateTime), 'seconds');
 
       if (isEndDate <= 0) {
         console.log('isEndDate is past date');
@@ -374,12 +338,7 @@ export class PromoOfferService {
         } as ResponsePayload;
       } else {
         console.log('isEndDate is future date');
-        this.jobSchedulerService.addOfferScheduleOnEnd(
-          true,
-          id,
-          endDateTime,
-          products,
-        );
+        this.jobSchedulerService.addOfferScheduleOnEnd(true, id, endDateTime, products);
       }
 
       if (isStartDate <= 0) {
@@ -388,12 +347,7 @@ export class PromoOfferService {
         await this.utilsService.updateProductsOnOfferStart(products);
       } else {
         console.log('isStartDate is future date');
-        this.jobSchedulerService.addOfferScheduleOnStart(
-          true,
-          id,
-          startDateTime,
-          products,
-        );
+        this.jobSchedulerService.addOfferScheduleOnStart(true, id, startDateTime, products);
       }
 
       await this.promoOfferModel.findByIdAndUpdate(id, {
@@ -420,10 +374,7 @@ export class PromoOfferService {
     }
 
     try {
-      await this.promoOfferModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updatePromoOfferDto },
-      );
+      await this.promoOfferModel.updateMany({ _id: { $in: mIds } }, { $set: updatePromoOfferDto });
 
       return {
         success: true,
@@ -437,11 +388,11 @@ export class PromoOfferService {
   /**
    * deletePromoOfferById
    * deleteMultiplePromoOfferById
+   *
+   * @param id
+   * @param checkUsage
    */
-  async deletePromoOfferById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deletePromoOfferById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.promoOfferModel.findById(id);
@@ -461,9 +412,7 @@ export class PromoOfferService {
 
       await this.promoOfferModel.findByIdAndDelete(id);
 
-      const productIds = defaultPromoOffer
-        ? defaultPromoOffer.products.map((m) => new ObjectId(m))
-        : [];
+      const productIds = defaultPromoOffer ? defaultPromoOffer.products.map((m) => new ObjectId(m)) : [];
 
       let resetData = {
         discountStartDateTime: null,
@@ -488,10 +437,7 @@ export class PromoOfferService {
     }
   }
 
-  async deleteMultiplePromoOfferById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultiplePromoOfferById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       // Remove Read Only Data
@@ -516,12 +462,8 @@ export class PromoOfferService {
       // };
 
       // CANCEL EXISTING JOB SCHEDULE
-      const jobNameStart = this.configService.get<string>(
-        'promoOfferScheduleOnStart',
-      );
-      const jobNameEnd = this.configService.get<string>(
-        'promoOfferScheduleOnEnd',
-      );
+      const jobNameStart = this.configService.get<string>('promoOfferScheduleOnStart');
+      const jobNameEnd = this.configService.get<string>('promoOfferScheduleOnEnd');
       await this.jobSchedulerService.cancelOfferJobScheduler(jobNameStart);
       await this.jobSchedulerService.cancelOfferJobScheduler(jobNameEnd);
       return {

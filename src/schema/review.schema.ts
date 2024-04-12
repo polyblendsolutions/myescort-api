@@ -7,7 +7,7 @@ export const ReviewSchema = new mongoose.Schema(
       _id: {
         type: Schema.Types.ObjectId,
         ref: 'User',
-        required:false,
+        required: false,
       },
       name: {
         type: String,
@@ -20,7 +20,7 @@ export const ReviewSchema = new mongoose.Schema(
       _id: {
         type: Schema.Types.ObjectId,
         ref: 'Product',
-        required:false,
+        required: false,
       },
       name: {
         type: String,
@@ -57,10 +57,10 @@ export const ReviewSchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
-    priority:{
+    priority: {
       type: Number,
       required: false,
-    }
+    },
   },
   {
     timestamps: true,

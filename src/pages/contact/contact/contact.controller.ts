@@ -14,22 +14,23 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
-import { AdminRoles } from '../../../enum/admin-roles.enum';
-import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
+
+import { ContactService } from './contact.service';
 import { AdminMetaPermissions } from '../../../decorator/admin-permissions.decorator';
-import { AdminPermissions } from '../../../enum/admin-permission.enum';
-import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
-import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
 import {
   AddContactDto,
   FilterAndPaginationContactDto,
   OptionContactDto,
   UpdateContactDto,
 } from '../../../dto/contact.dto';
+import { AdminPermissions } from '../../../enum/admin-permission.enum';
+import { AdminRoles } from '../../../enum/admin-roles.enum';
+import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
+import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
 import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
-import { ContactService } from './contact.service';
 
 @Controller('contact')
 export class ContactController {
@@ -40,6 +41,8 @@ export class ContactController {
   /**
    * addContact
    * insertManyContact
+   *
+   * @param addContactDto
    */
   @Post('/add')
   // @UsePipes(ValidationPipe)
@@ -75,6 +78,9 @@ export class ContactController {
   /**
    * getAllContacts
    * getContactById
+   *
+   * @param filterContactDto
+   * @param searchString
    */
   @Version(VERSION_NEUTRAL)
   @Post('/get-all')
@@ -104,6 +110,9 @@ export class ContactController {
   /**
    * updateContactById
    * updateMultipleContactById
+   *
+   * @param id
+   * @param updateContactDto
    */
   @Version(VERSION_NEUTRAL)
   @Put('/update/:id')
@@ -128,18 +137,16 @@ export class ContactController {
   @AdminMetaPermissions(AdminPermissions.EDIT)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async updateMultipleContactById(
-    @Body() updateContactDto: UpdateContactDto,
-  ): Promise<ResponsePayload> {
-    return await this.contactService.updateMultipleContactById(
-      updateContactDto.ids,
-      updateContactDto,
-    );
+  async updateMultipleContactById(@Body() updateContactDto: UpdateContactDto): Promise<ResponsePayload> {
+    return await this.contactService.updateMultipleContactById(updateContactDto.ids, updateContactDto);
   }
 
   /**
    * deleteContactById
    * deleteMultipleContactById
+   *
+   * @param id
+   * @param checkUsage
    */
   @Version(VERSION_NEUTRAL)
   @Delete('/delete/:id')
@@ -168,9 +175,6 @@ export class ContactController {
     @Body() data: { ids: string[] },
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.contactService.deleteMultipleContactById(
-      data.ids,
-      Boolean(checkUsage),
-    );
+    return await this.contactService.deleteMultipleContactById(data.ids, Boolean(checkUsage));
   }
 }

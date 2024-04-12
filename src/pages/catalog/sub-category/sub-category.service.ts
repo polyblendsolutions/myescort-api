@@ -6,21 +6,22 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../../shared/utils/utils.service';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../../enum/error-code.enum';
+
+import { UpdateCategoryDto } from '../../../dto/category.dto';
 import {
   AddSubCategoryDto,
   FilterAndPaginationSubCategoryDto,
   OptionSubCategoryDto,
   UpdateSubCategoryDto,
 } from '../../../dto/sub-category.dto';
-import { SubCategory } from '../../../interfaces/common/sub-category.interface';
+import { ErrorCodes } from '../../../enum/error-code.enum';
 import { Product } from '../../../interfaces/common/product.interface';
-import { UpdateCategoryDto } from '../../../dto/category.dto';
+import { SubCategory } from '../../../interfaces/common/sub-category.interface';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
+import { UtilsService } from '../../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -39,10 +40,10 @@ export class SubCategoryService {
   /**
    * addSubCategory
    * insertManySubCategory
+   *
+   * @param addSubCategoryDto
    */
-  async addSubCategory(
-    addSubCategoryDto: AddSubCategoryDto,
-  ): Promise<ResponsePayload> {
+  async addSubCategory(addSubCategoryDto: AddSubCategoryDto): Promise<ResponsePayload> {
     const { name, slug } = addSubCategoryDto;
 
     try {
@@ -100,9 +101,7 @@ export class SubCategoryService {
       const saveData = await this.subCategoryModel.insertMany(mData);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       // console.log(error);
@@ -117,6 +116,9 @@ export class SubCategoryService {
   /**
    * getAllSubCategories
    * getSubCategoryById
+   *
+   * @param filterSubCategoryDto
+   * @param searchQuery
    */
   async getAllSubCategories(
     filterSubCategoryDto: FilterAndPaginationSubCategoryDto,
@@ -233,9 +235,7 @@ export class SubCategoryService {
     }
 
     try {
-      const dataAggregates = await this.subCategoryModel.aggregate(
-        aggregateStages,
-      );
+      const dataAggregates = await this.subCategoryModel.aggregate(aggregateStages);
       if (pagination) {
         return {
           ...{ ...dataAggregates[0] },
@@ -259,10 +259,7 @@ export class SubCategoryService {
     }
   }
 
-  async getSubCategoryById(
-    id: string,
-    select: string,
-  ): Promise<ResponsePayload> {
+  async getSubCategoryById(id: string, select: string): Promise<ResponsePayload> {
     try {
       const data = await this.subCategoryModel.findById(id).select(select);
       return {
@@ -275,14 +272,9 @@ export class SubCategoryService {
     }
   }
 
-  async getSubCategoriesByCategoryId(
-    id: string,
-    select: string,
-  ): Promise<ResponsePayload> {
+  async getSubCategoriesByCategoryId(id: string, select: string): Promise<ResponsePayload> {
     try {
-      const data = await this.subCategoryModel
-        .find({ category: id })
-        .select(select);
+      const data = await this.subCategoryModel.find({ category: id }).select(select);
       return {
         success: true,
         message: 'Success',
@@ -323,18 +315,13 @@ export class SubCategoryService {
     });
 
     try {
-      const dataAggregates = await this.subCategoryModel.aggregate(
-        aggregateStages,
-      );
+      const dataAggregates = await this.subCategoryModel.aggregate(aggregateStages);
       const mDataAggregates = JSON.parse(JSON.stringify(dataAggregates));
 
       const filteredData: any[] = [];
 
       mDataAggregates.forEach((m) => {
-        if (
-          m.category[0]?.status === 'publish' &&
-          m.category[0]?.readOnly !== true
-        ) {
+        if (m.category[0]?.status === 'publish' && m.category[0]?.readOnly !== true) {
           const data = {
             _id: m._id,
             name: m.category[0].name,
@@ -367,11 +354,11 @@ export class SubCategoryService {
   /**
    * updateSubCategoryById
    * updateMultipleSubCategoryById
+   *
+   * @param id
+   * @param updateSubCategoryDto
    */
-  async updateSubCategoryById(
-    id: string,
-    updateSubCategoryDto: UpdateSubCategoryDto,
-  ): Promise<ResponsePayload> {
+  async updateSubCategoryById(id: string, updateSubCategoryDto: UpdateSubCategoryDto): Promise<ResponsePayload> {
     try {
       const { name, slug } = updateSubCategoryDto;
 
@@ -420,10 +407,7 @@ export class SubCategoryService {
     }
 
     try {
-      await this.subCategoryModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateSubCategoryDto },
-      );
+      await this.subCategoryModel.updateMany({ _id: { $in: mIds } }, { $set: updateSubCategoryDto });
 
       return {
         success: true,
@@ -434,24 +418,15 @@ export class SubCategoryService {
     }
   }
 
-  async changeMultipleSubCategoryStatus(
-    ids: string[],
-    updateCategoryDto: UpdateCategoryDto,
-  ): Promise<ResponsePayload> {
+  async changeMultipleSubCategoryStatus(ids: string[], updateCategoryDto: UpdateCategoryDto): Promise<ResponsePayload> {
     const { status } = updateCategoryDto;
 
     const mIds = ids.map((m) => new ObjectId(m));
 
     try {
-      await this.subCategoryModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: { status: status } },
-      );
+      await this.subCategoryModel.updateMany({ _id: { $in: mIds } }, { $set: { status: status } });
 
-      await this.productModel.updateMany(
-        { 'category._id': { $in: mIds } },
-        { $set: { status: status } },
-      );
+      await this.productModel.updateMany({ 'category._id': { $in: mIds } }, { $set: { status: status } });
 
       return {
         success: true,
@@ -465,11 +440,11 @@ export class SubCategoryService {
   /**
    * deleteSubCategoryById
    * deleteMultipleSubCategoryById
+   *
+   * @param id
+   * @param checkUsage
    */
-  async deleteSubCategoryById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteSubCategoryById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.subCategoryModel.findById(id);
@@ -497,10 +472,7 @@ export class SubCategoryService {
           },
         };
         // Update Product
-        await this.productModel.updateMany(
-          { 'subCategory._id': new ObjectId(id) },
-          { $set: resetCategory },
-        );
+        await this.productModel.updateMany({ 'subCategory._id': new ObjectId(id) }, { $set: resetCategory });
       }
       return {
         success: true,
@@ -511,19 +483,14 @@ export class SubCategoryService {
     }
   }
 
-  async deleteMultipleSubCategoryById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleSubCategoryById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       // Remove Read Only Data
       const allCategory = await this.subCategoryModel.find({
         _id: { $in: mIds },
       });
-      const filteredIds = allCategory
-        .filter((f) => f.readOnly !== true)
-        .map((m) => m._id);
+      const filteredIds = allCategory.filter((f) => f.readOnly !== true).map((m) => m._id);
       await this.subCategoryModel.deleteMany({ _id: filteredIds });
 
       // Reset Product Category Reference
@@ -539,10 +506,7 @@ export class SubCategoryService {
           },
         };
         // Update Product
-        await this.productModel.updateMany(
-          { 'subCategory._id': { $in: mIds } },
-          { $set: resetCategory },
-        );
+        await this.productModel.updateMany({ 'subCategory._id': { $in: mIds } }, { $set: resetCategory });
       }
       return {
         success: true,

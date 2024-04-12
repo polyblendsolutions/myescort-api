@@ -6,13 +6,10 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../../shared/utils/utils.service';
-import { Publisher } from '../../../interfaces/common/publisher.interface';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../../enum/error-code.enum';
+
 import {
   AddPublisherDto,
   CheckPublisherDto,
@@ -20,7 +17,11 @@ import {
   OptionPublisherDto,
   UpdatePublisherDto,
 } from '../../../dto/publisher.dto';
+import { ErrorCodes } from '../../../enum/error-code.enum';
+import { Publisher } from '../../../interfaces/common/publisher.interface';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { User } from '../../../interfaces/user/user.interface';
+import { UtilsService } from '../../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -38,10 +39,10 @@ export class PublisherService {
   /**
    * addPublisher
    * insertManyPublisher
+   *
+   * @param addPublisherDto
    */
-  async addPublisher(
-    addPublisherDto: AddPublisherDto,
-  ): Promise<ResponsePayload> {
+  async addPublisher(addPublisherDto: AddPublisherDto): Promise<ResponsePayload> {
     const { name, slug } = addPublisherDto;
 
     try {
@@ -99,9 +100,7 @@ export class PublisherService {
       const saveData = await this.publisherModel.insertMany(mData);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       // console.log(error);
@@ -229,9 +228,7 @@ export class PublisherService {
     }
 
     try {
-      const dataAggregates = await this.publisherModel.aggregate(
-        aggregateSpublisheres,
-      );
+      const dataAggregates = await this.publisherModel.aggregate(aggregateSpublisheres);
       if (pagination) {
         return {
           ...{ ...dataAggregates[0] },
@@ -271,11 +268,11 @@ export class PublisherService {
   /**
    * updatePublisherById
    * updateMultiplePublisherById
+   *
+   * @param id
+   * @param updatePublisherDto
    */
-  async updatePublisherById(
-    id: string,
-    updatePublisherDto: UpdatePublisherDto,
-  ): Promise<ResponsePayload> {
+  async updatePublisherById(id: string, updatePublisherDto: UpdatePublisherDto): Promise<ResponsePayload> {
     try {
       const { name, slug } = updatePublisherDto;
 
@@ -312,17 +309,11 @@ export class PublisherService {
     }
   }
 
-  async updateMultiplePublisherById(
-    ids: string[],
-    updatePublisherDto: UpdatePublisherDto,
-  ): Promise<ResponsePayload> {
+  async updateMultiplePublisherById(ids: string[], updatePublisherDto: UpdatePublisherDto): Promise<ResponsePayload> {
     const mIds = ids.map((m) => new ObjectId(m));
 
     try {
-      await this.publisherModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updatePublisherDto },
-      );
+      await this.publisherModel.updateMany({ _id: { $in: mIds } }, { $set: updatePublisherDto });
 
       return {
         success: true,
@@ -336,11 +327,11 @@ export class PublisherService {
   /**
    * deletePublisherById
    * deleteMultiplePublisherById
+   *
+   * @param id
+   * @param checkUsage
    */
-  async deletePublisherById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deletePublisherById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.publisherModel.findById(id);
@@ -361,10 +352,7 @@ export class PublisherService {
     }
   }
 
-  async deleteMultiplePublisherById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultiplePublisherById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       await this.publisherModel.deleteMany({ _id: ids });
@@ -381,11 +369,11 @@ export class PublisherService {
    * COUPON FUNCTIONS
    * generateOtpWithPhoneNo()
    * validateOtpWithPhoneNo()
+   *
+   * @param user
+   * @param checkPublisherDto
    */
-  async checkPublisherAvailability(
-    user: User,
-    checkPublisherDto: CheckPublisherDto,
-  ): Promise<ResponsePayload> {
+  async checkPublisherAvailability(user: User, checkPublisherDto: CheckPublisherDto): Promise<ResponsePayload> {
     try {
       const { publisherCode, subTotal } = checkPublisherDto;
 

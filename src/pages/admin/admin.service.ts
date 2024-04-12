@@ -6,17 +6,12 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import {
-  Admin,
-  AdminAuthResponse,
-  AdminJwtPayload,
-} from '../../interfaces/admin/admin.interface';
-import { ErrorCodes } from '../../enum/error-code.enum';
+import { JwtService } from '@nestjs/jwt';
+import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
+import { Model, Types } from 'mongoose';
+
 import {
   AdminSelectFieldDto,
   AuthAdminDto,
@@ -24,8 +19,10 @@ import {
   FilterAndPaginationAdminDto,
   UpdateAdminDto,
 } from '../../dto/admin.dto';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 import { ChangePasswordDto } from '../../dto/change-password.dto';
+import { ErrorCodes } from '../../enum/error-code.enum';
+import { Admin, AdminAuthResponse, AdminJwtPayload } from '../../interfaces/admin/admin.interface';
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 import { UtilsService } from '../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
@@ -44,6 +41,8 @@ export class AdminService {
   /**
    * Admin Signup
    * Admin Login
+   *
+   * @param createAdminDto
    */
   async adminSignup(createAdminDto: CreateAdminDto): Promise<ResponsePayload> {
     const { password } = createAdminDto;
@@ -100,10 +99,7 @@ export class AdminService {
         } as AdminAuthResponse;
       }
 
-      const isMatch = await bcrypt.compare(
-        authAdminDto.password,
-        user.password,
-      );
+      const isMatch = await bcrypt.compare(authAdminDto.password, user.password);
 
       if (isMatch) {
         const payload: AdminJwtPayload = {
@@ -129,9 +125,7 @@ export class AdminService {
             permissions: user.permissions,
           },
           token: accessToken,
-          tokenExpiredIn: this.configService.get<number>(
-            'adminTokenExpiredTime',
-          ),
+          tokenExpiredIn: this.configService.get<number>('adminTokenExpiredTime'),
         } as AdminAuthResponse;
       } else {
         return {
@@ -157,10 +151,7 @@ export class AdminService {
    * Get All Admins by Search
    */
 
-  async getLoggedInAdminData(
-    admin: Admin,
-    selectQuery: AdminSelectFieldDto,
-  ): Promise<ResponsePayload> {
+  async getLoggedInAdminData(admin: Admin, selectQuery: AdminSelectFieldDto): Promise<ResponsePayload> {
     try {
       let { select } = selectQuery;
       if (!select) {
@@ -178,10 +169,7 @@ export class AdminService {
     }
   }
 
-  async getAllAdmins(
-    filterAdminDto: FilterAndPaginationAdminDto,
-    searchQuery?: string,
-  ): Promise<ResponsePayload> {
+  async getAllAdmins(filterAdminDto: FilterAndPaginationAdminDto, searchQuery?: string): Promise<ResponsePayload> {
     const { filter } = filterAdminDto;
     const { pagination } = filterAdminDto;
     const { sort } = filterAdminDto;
@@ -297,10 +285,7 @@ export class AdminService {
     }
   }
 
-  async getAdminsBySearch(
-    searchQuery: string,
-    selectQuery?: AdminSelectFieldDto,
-  ): Promise<Admin[]> {
+  async getAdminsBySearch(searchQuery: string, selectQuery?: AdminSelectFieldDto): Promise<Admin[]> {
     const newQuery = searchQuery.split(/[ ,]+/);
     const queryArray = newQuery.map((str) => ({ name: RegExp(str, 'i') }));
     const queryArray2 = newQuery.map((str) => ({ email: RegExp(str, 'i') }));
@@ -309,12 +294,7 @@ export class AdminService {
     try {
       return await this.adminModel
         .find({
-          $or: [
-            { $and: queryArray },
-            { $and: queryArray2 },
-            { $and: queryArray3 },
-            { $and: queryArray4 },
-          ],
+          $or: [{ $and: queryArray }, { $and: queryArray2 }, { $and: queryArray3 }, { $and: queryArray4 }],
         })
         .limit(20)
         .select(selectQuery ? selectQuery.select : '-password');
@@ -331,11 +311,11 @@ export class AdminService {
    * Update Multiple Admin By Id
    * Delete Admin by Id
    * Delete Multiple Admin By Id
+   *
+   * @param id
+   * @param adminSelectFieldDto
    */
-  async getAdminById(
-    id: string,
-    adminSelectFieldDto: AdminSelectFieldDto,
-  ): Promise<ResponsePayload> {
+  async getAdminById(id: string, adminSelectFieldDto: AdminSelectFieldDto): Promise<ResponsePayload> {
     try {
       let { select } = adminSelectFieldDto;
       if (!select) {
@@ -352,10 +332,7 @@ export class AdminService {
     }
   }
 
-  async updateLoggedInAdminInfo(
-    admin: Admin,
-    updateAdminDto: UpdateAdminDto,
-  ): Promise<ResponsePayload> {
+  async updateLoggedInAdminInfo(admin: Admin, updateAdminDto: UpdateAdminDto): Promise<ResponsePayload> {
     const { password, username } = updateAdminDto;
     let user;
     try {
@@ -409,10 +386,7 @@ export class AdminService {
     }
   }
 
-  async changeLoggedInAdminPassword(
-    admind: Admin,
-    changePasswordDto: ChangePasswordDto,
-  ): Promise<ResponsePayload> {
+  async changeLoggedInAdminPassword(admind: Admin, changePasswordDto: ChangePasswordDto): Promise<ResponsePayload> {
     const { password, oldPassword } = changePasswordDto;
     let admin;
     try {
@@ -450,10 +424,7 @@ export class AdminService {
     }
   }
 
-  async updateAdminById(
-    id: string,
-    updateAdminDto: UpdateAdminDto,
-  ): Promise<ResponsePayload> {
+  async updateAdminById(id: string, updateAdminDto: UpdateAdminDto): Promise<ResponsePayload> {
     const { newPassword, username } = updateAdminDto;
     let user;
     try {
@@ -506,10 +477,7 @@ export class AdminService {
     }
   }
 
-  async updateMultipleAdminById(
-    ids: string[],
-    updateAdminDto: UpdateAdminDto,
-  ): Promise<ResponsePayload> {
+  async updateMultipleAdminById(ids: string[], updateAdminDto: UpdateAdminDto): Promise<ResponsePayload> {
     const mIds = ids.map((m) => new ObjectId(m));
 
     // Delete No Multiple Action Data
@@ -524,10 +492,7 @@ export class AdminService {
     }
 
     try {
-      await this.adminModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateAdminDto },
-      );
+      await this.adminModel.updateMany({ _id: { $in: mIds } }, { $set: updateAdminDto });
 
       return {
         success: true,

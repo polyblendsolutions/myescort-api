@@ -1,7 +1,8 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { google } from 'googleapis';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 import * as nodemailer from 'nodemailer';
+
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 
 @Injectable()
 export class EmailService {
@@ -12,6 +13,9 @@ export class EmailService {
   /**
    * EMAIL METHODS
    * getDateString
+   *
+   * @param email
+   * @param body
    */
   async sendEmail(email, body: string): Promise<ResponsePayload> {
     try {
@@ -20,11 +24,7 @@ export class EmailService {
       const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
       const REFRESH_TOKEN = process.env.GOOGLE_REFRESH_TOKEN;
 
-      const oAuth2Client = new google.auth.OAuth2(
-        CLIENT_ID,
-        CLIENT_SECRET,
-        REDIRECT_URI,
-      );
+      const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
       oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
 
       const accessToken = await oAuth2Client.getAccessToken();

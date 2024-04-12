@@ -14,13 +14,11 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
-import { AdminRoles } from '../../../enum/admin-roles.enum';
-import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
+
+import { OrderService } from './order.service';
 import { AdminMetaPermissions } from '../../../decorator/admin-permissions.decorator';
-import { AdminPermissions } from '../../../enum/admin-permission.enum';
-import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
-import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
+import { GetTokenUser } from '../../../decorator/get-token-user.decorator';
 import {
   AddOrderDto,
   FilterAndPaginationOrderDto,
@@ -28,12 +26,15 @@ import {
   UpdateOrderDto,
   UpdateOrderStatusDto,
 } from '../../../dto/order.dto';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
-import { OrderService } from './order.service';
+import { AdminPermissions } from '../../../enum/admin-permission.enum';
+import { AdminRoles } from '../../../enum/admin-roles.enum';
+import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
+import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
 import { UserJwtAuthGuard } from '../../../guards/user-jwt-auth.guard';
-import { GetTokenUser } from '../../../decorator/get-token-user.decorator';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { User } from '../../../interfaces/user/user.interface';
+import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
 
 @Controller('order')
 export class OrderController {
@@ -44,6 +45,8 @@ export class OrderController {
   /**
    * addOrder
    * insertManyOrder
+   *
+   * @param addOrderDto
    */
   @Post('/add')
   @UsePipes(ValidationPipe)
@@ -101,6 +104,9 @@ export class OrderController {
   /**
    * getAllOrders
    * getOrderById
+   *
+   * @param filterOrderDto
+   * @param searchString
    */
   @Version(VERSION_NEUTRAL)
   @Post('/get-all')
@@ -120,11 +126,7 @@ export class OrderController {
     @Body() filterOrderDto: FilterAndPaginationOrderDto,
     @Query('q') searchString: string,
   ): Promise<ResponsePayload> {
-    return await this.orderService.getOrdersByUser(
-      user,
-      filterOrderDto,
-      searchString,
-    );
+    return await this.orderService.getOrdersByUser(user, filterOrderDto, searchString);
   }
 
   @Version(VERSION_NEUTRAL)
@@ -139,6 +141,9 @@ export class OrderController {
   /**
    * updateOrderById
    * updateMultipleOrderById
+   *
+   * @param id
+   * @param updateOrderDto
    */
   @Version(VERSION_NEUTRAL)
   @Put('/update/:id')
@@ -163,13 +168,8 @@ export class OrderController {
   @AdminMetaPermissions(AdminPermissions.EDIT)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async updateMultipleOrderById(
-    @Body() updateOrderDto: UpdateOrderDto,
-  ): Promise<ResponsePayload> {
-    return await this.orderService.updateMultipleOrderById(
-      updateOrderDto.ids,
-      updateOrderDto,
-    );
+  async updateMultipleOrderById(@Body() updateOrderDto: UpdateOrderDto): Promise<ResponsePayload> {
+    return await this.orderService.updateMultipleOrderById(updateOrderDto.ids, updateOrderDto);
   }
 
   @Version(VERSION_NEUTRAL)
@@ -190,6 +190,9 @@ export class OrderController {
   /**
    * deleteOrderById
    * deleteMultipleOrderById
+   *
+   * @param id
+   * @param checkUsage
    */
   @Version(VERSION_NEUTRAL)
   @Delete('/delete/:id')
@@ -218,9 +221,6 @@ export class OrderController {
     @Body() data: { ids: string[] },
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.orderService.deleteMultipleOrderById(
-      data.ids,
-      Boolean(checkUsage),
-    );
+    return await this.orderService.deleteMultipleOrderById(data.ids, Boolean(checkUsage));
   }
 }

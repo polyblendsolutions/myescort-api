@@ -1,10 +1,6 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+
 import { ADMIN_ROLES_KEY } from '../core/global-variables';
 
 @Injectable()
@@ -12,10 +8,7 @@ export class AdminRolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const roles = this.reflector.get<string[]>(
-      ADMIN_ROLES_KEY,
-      context.getHandler(),
-    );
+    const roles = this.reflector.get<string[]>(ADMIN_ROLES_KEY, context.getHandler());
     if (!roles) {
       return true;
     }
@@ -34,9 +27,7 @@ export class AdminRolesGuard implements CanActivate {
     if (roles.includes(user?.role)) {
       return roles.includes(user?.role);
     } else {
-      throw new UnauthorizedException(
-        'This role does not have permission for this action.',
-      );
+      throw new UnauthorizedException('This role does not have permission for this action.');
     }
   }
 }

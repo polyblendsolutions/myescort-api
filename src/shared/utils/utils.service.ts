@@ -10,6 +10,8 @@ export class UtilsService {
   /**
    * MOMENT DATE FUNCTIONS
    * getDateString
+   *
+   * @param date
    */
   getDateString(date: Date): string {
     return moment(date).format('YYYY-MM-DD');
@@ -36,11 +38,7 @@ export class UtilsService {
     return newDate.toDate();
   }
 
-  getDateDifference(
-    date1: Date | string,
-    date2: Date | string,
-    unit?: string,
-  ): number {
+  getDateDifference(date1: Date | string, date2: Date | string, unit?: string): number {
     /**
      * If First Date is Current or Future Date
      * If Second Date is Expire or Old Date
@@ -74,6 +72,9 @@ export class UtilsService {
   /**
    * STRING FUNCTIONS
    * transformToSlug
+   *
+   * @param value
+   * @param salt
    */
   public transformToSlug(value: string, salt?: boolean): string {
     const slug = value
@@ -86,6 +87,9 @@ export class UtilsService {
 
   /**
    * RANDOM FUNCTIONS
+   *
+   * @param min
+   * @param max
    */
   getRandomInt(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -93,6 +97,8 @@ export class UtilsService {
 
   /**
    * PAD LEADING
+   *
+   * @param num
    */
   padLeadingZeros(num): string {
     return String(num).padStart(4, '0');

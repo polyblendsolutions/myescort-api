@@ -1,4 +1,5 @@
 import * as mongoose from 'mongoose';
+
 import { PRODUCT_DISCOUNT_OPTIONS } from './sub-schema.schema';
 
 export const PromoOfferSchema = new mongoose.Schema(

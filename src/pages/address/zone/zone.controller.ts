@@ -14,22 +14,18 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
-import { AdminRoles } from '../../../enum/admin-roles.enum';
-import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
+
+import { ZoneService } from './zone.service';
 import { AdminMetaPermissions } from '../../../decorator/admin-permissions.decorator';
+import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
+import { AddZoneDto, FilterAndPaginationZoneDto, OptionZoneDto, UpdateZoneDto } from '../../../dto/zone.dto';
 import { AdminPermissions } from '../../../enum/admin-permission.enum';
-import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
+import { AdminRoles } from '../../../enum/admin-roles.enum';
 import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
+import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
 import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
-import {
-  AddZoneDto,
-  FilterAndPaginationZoneDto,
-  OptionZoneDto,
-  UpdateZoneDto,
-} from '../../../dto/zone.dto';
-import { ZoneService } from './zone.service';
 
 @Controller('zone')
 export class ZoneController {
@@ -106,10 +102,7 @@ export class ZoneController {
   @AdminMetaRoles(AdminRoles.SUPER_ADMIN, AdminRoles.ADMIN)
   @UseGuards(AdminRolesGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async getZoneById(
-    @Param('id', MongoIdValidationPipe) id: string,
-    @Query() select: string,
-  ): Promise<ResponsePayload> {
+  async getZoneById(@Param('id', MongoIdValidationPipe) id: string, @Query() select: string): Promise<ResponsePayload> {
     return await this.zoneService.getZoneById(id, select);
   }
 
@@ -136,13 +129,8 @@ export class ZoneController {
   @AdminMetaPermissions(AdminPermissions.EDIT)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async updateMultipleZoneById(
-    @Body() updateZoneDto: UpdateZoneDto,
-  ): Promise<ResponsePayload> {
-    return await this.zoneService.updateMultipleZoneById(
-      updateZoneDto.ids,
-      updateZoneDto,
-    );
+  async updateMultipleZoneById(@Body() updateZoneDto: UpdateZoneDto): Promise<ResponsePayload> {
+    return await this.zoneService.updateMultipleZoneById(updateZoneDto.ids, updateZoneDto);
   }
 
   @Version(VERSION_NEUTRAL)
@@ -172,9 +160,6 @@ export class ZoneController {
     @Body() data: { ids: string[] },
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.zoneService.deleteMultipleZoneById(
-      data.ids,
-      Boolean(checkUsage),
-    );
+    return await this.zoneService.deleteMultipleZoneById(data.ids, Boolean(checkUsage));
   }
 }

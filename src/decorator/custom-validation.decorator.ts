@@ -1,10 +1,11 @@
-import {
-  registerDecorator,
-  ValidationArguments,
-  ValidationOptions,
-} from 'class-validator';
+import { registerDecorator, ValidationArguments, ValidationOptions } from 'class-validator';
+
 import { UserRegTypes } from '../enum/user-reg-types.enum';
 
+/**
+ *
+ * @param validationOptions
+ */
 export function CheckUserRegType(validationOptions?: ValidationOptions) {
   return (object: any, propertyName: string) => {
     registerDecorator({

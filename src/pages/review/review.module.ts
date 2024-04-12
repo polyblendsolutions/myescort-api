@@ -1,11 +1,12 @@
-import { AdminSchema } from './../../schema/admin.schema';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ReviewSchema } from 'src/schema/review.schema';
-import { ProductSchema } from '../../schema/product.schema';
+
+import { AdminSchema } from './../../schema/admin.schema';
 import { ReviewController } from './review.controller';
 import { ReviewService } from './review.service';
-import {UserSchema} from '../../schema/user.schema';
+import { ProductSchema } from '../../schema/product.schema';
+import { UserSchema } from '../../schema/user.schema';
 
 @Module({
   imports: [

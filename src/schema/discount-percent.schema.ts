@@ -11,8 +11,7 @@ export const DiscountPercentSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    
-  
+
     discountPercent: {
       type: Number,
       required: false,

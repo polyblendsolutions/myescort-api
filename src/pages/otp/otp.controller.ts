@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Logger,
-  Post,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Body, Controller, Logger, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 
 import { OtpService } from './otp.service';
 import { AddOtpDto, ValidateOtpDto } from '../../dto/otp.dto';
@@ -20,6 +13,8 @@ export class OtpController {
   /**
    * addOtp
    * insertManyOtp
+   *
+   * @param addOtpDto
    */
   @Post('/generate-otp')
   @UsePipes(ValidationPipe)
@@ -27,7 +22,6 @@ export class OtpController {
     @Body()
     addOtpDto: AddOtpDto,
   ): Promise<ResponsePayload> {
-
     return await this.otpService.generateOtpWithEmail(addOtpDto);
   }
 

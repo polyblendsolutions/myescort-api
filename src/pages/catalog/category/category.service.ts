@@ -6,21 +6,22 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../../shared/utils/utils.service';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../../enum/error-code.enum';
-import { Category } from '../../../interfaces/common/category.interface';
+
 import {
   AddCategoryDto,
   FilterAndPaginationCategoryDto,
   OptionCategoryDto,
   UpdateCategoryDto,
 } from '../../../dto/category.dto';
+import { ErrorCodes } from '../../../enum/error-code.enum';
+import { Category } from '../../../interfaces/common/category.interface';
 import { Product } from '../../../interfaces/common/product.interface';
 import { SubCategory } from '../../../interfaces/common/sub-category.interface';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
+import { UtilsService } from '../../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -40,6 +41,8 @@ export class CategoryService {
   /**
    * addCategory
    * insertManyCategory
+   *
+   * @param addCategoryDto
    */
   async addCategory(addCategoryDto: AddCategoryDto): Promise<ResponsePayload> {
     const { name, slug } = addCategoryDto;
@@ -99,9 +102,7 @@ export class CategoryService {
       const saveData = await this.categoryModel.insertMany(mData);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       // console.log(error);
@@ -116,6 +117,9 @@ export class CategoryService {
   /**
    * getAllCategories
    * getCategoryById
+   *
+   * @param filterCategoryDto
+   * @param searchQuery
    */
   async getAllCategories(
     filterCategoryDto: FilterAndPaginationCategoryDto,
@@ -207,9 +211,7 @@ export class CategoryService {
     }
 
     try {
-      const dataAggregates = await this.categoryModel.aggregate(
-        aggregateStages,
-      );
+      const dataAggregates = await this.categoryModel.aggregate(aggregateStages);
       if (pagination) {
         return {
           ...{ ...dataAggregates[0] },
@@ -249,11 +251,11 @@ export class CategoryService {
   /**
    * updateCategoryById
    * updateMultipleCategoryById
+   *
+   * @param id
+   * @param updateCategoryDto
    */
-  async updateCategoryById(
-    id: string,
-    updateCategoryDto: UpdateCategoryDto,
-  ): Promise<ResponsePayload> {
+  async updateCategoryById(id: string, updateCategoryDto: UpdateCategoryDto): Promise<ResponsePayload> {
     try {
       const { name, slug } = updateCategoryDto;
 
@@ -290,10 +292,7 @@ export class CategoryService {
     }
   }
 
-  async updateMultipleCategoryById(
-    ids: string[],
-    updateCategoryDto: UpdateCategoryDto,
-  ): Promise<ResponsePayload> {
+  async updateMultipleCategoryById(ids: string[], updateCategoryDto: UpdateCategoryDto): Promise<ResponsePayload> {
     const mIds = ids.map((m) => new ObjectId(m));
 
     // Delete No Multiple Action Data
@@ -302,10 +301,7 @@ export class CategoryService {
     }
 
     try {
-      await this.categoryModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateCategoryDto },
-      );
+      await this.categoryModel.updateMany({ _id: { $in: mIds } }, { $set: updateCategoryDto });
 
       return {
         success: true,
@@ -316,24 +312,15 @@ export class CategoryService {
     }
   }
 
-  async changeMultipleCategoryStatus(
-    ids: string[],
-    updateCategoryDto: UpdateCategoryDto,
-  ): Promise<ResponsePayload> {
+  async changeMultipleCategoryStatus(ids: string[], updateCategoryDto: UpdateCategoryDto): Promise<ResponsePayload> {
     const { status } = updateCategoryDto;
 
     const mIds = ids.map((m) => new ObjectId(m));
 
     try {
-      await this.categoryModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: { status: status } },
-      );
+      await this.categoryModel.updateMany({ _id: { $in: mIds } }, { $set: { status: status } });
 
-      await this.productModel.updateMany(
-        { 'category._id': { $in: mIds } },
-        { $set: { status: status } },
-      );
+      await this.productModel.updateMany({ 'category._id': { $in: mIds } }, { $set: { status: status } });
 
       return {
         success: true,
@@ -347,11 +334,11 @@ export class CategoryService {
   /**
    * deleteCategoryById
    * deleteMultipleCategoryById
+   *
+   * @param id
+   * @param checkUsage
    */
-  async deleteCategoryById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteCategoryById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.categoryModel.findById(id);
@@ -392,10 +379,7 @@ export class CategoryService {
           { $set: { category: defaultCategory._id } },
         );
         // Update Product
-        await this.productModel.updateMany(
-          { 'category._id': new ObjectId(id) },
-          { $set: resetCategory },
-        );
+        await this.productModel.updateMany({ 'category._id': new ObjectId(id) }, { $set: resetCategory });
       }
 
       return {
@@ -407,17 +391,12 @@ export class CategoryService {
     }
   }
 
-  async deleteMultipleCategoryById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleCategoryById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       // Remove Read Only Data
       const allCategory = await this.categoryModel.find({ _id: { $in: mIds } });
-      const filteredIds = allCategory
-        .filter((f) => f.readOnly !== true)
-        .map((m) => m._id);
+      const filteredIds = allCategory.filter((f) => f.readOnly !== true).map((m) => m._id);
       await this.categoryModel.deleteMany({ _id: filteredIds });
       // Reset Product Category Reference
       if (checkUsage) {
@@ -446,10 +425,7 @@ export class CategoryService {
           { $set: { category: defaultCategory._id } },
         );
         // Update Product
-        await this.productModel.updateMany(
-          { 'category._id': { $in: mIds } },
-          { $set: resetCategory },
-        );
+        await this.productModel.updateMany({ 'category._id': { $in: mIds } }, { $set: resetCategory });
       }
       return {
         success: true,

@@ -6,13 +6,10 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../../shared/utils/utils.service';
-import { Order } from '../../../interfaces/common/order.interface';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../../enum/error-code.enum';
+
 import {
   AddOrderDto,
   FilterAndPaginationOrderDto,
@@ -20,11 +17,15 @@ import {
   UpdateOrderDto,
   UpdateOrderStatusDto,
 } from '../../../dto/order.dto';
-import { Product } from '../../../interfaces/common/product.interface';
-import { UniqueId } from '../../../interfaces/core/unique-id.interface';
+import { ErrorCodes } from '../../../enum/error-code.enum';
 import { OrderStatus } from '../../../enum/order.enum';
-import { User } from '../../../interfaces/user/user.interface';
 import { Cart } from '../../../interfaces/common/cart.interface';
+import { Order } from '../../../interfaces/common/order.interface';
+import { Product } from '../../../interfaces/common/product.interface';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
+import { UniqueId } from '../../../interfaces/core/unique-id.interface';
+import { User } from '../../../interfaces/user/user.interface';
+import { UtilsService } from '../../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -45,6 +46,8 @@ export class OrderService {
   /**
    * addOrder
    * insertManyOrder
+   *
+   * @param addOrderDto
    */
   async addOrder(addOrderDto: AddOrderDto): Promise<ResponsePayload> {
     // Increment Order Id Unique
@@ -125,10 +128,7 @@ export class OrderService {
     }
   }
 
-  async addOrderByUser(
-    addOrderDto: AddOrderDto,
-    user: User,
-  ): Promise<ResponsePayload> {
+  async addOrderByUser(addOrderDto: AddOrderDto, user: User): Promise<ResponsePayload> {
     // Add user ID on order dto
     if (user) {
       addOrderDto.user = user._id;
@@ -165,10 +165,7 @@ export class OrderService {
     }
   }
 
-  async insertManyOrder(
-    addOrdersDto: AddOrderDto[],
-    optionOrderDto: OptionOrderDto,
-  ): Promise<ResponsePayload> {
+  async insertManyOrder(addOrdersDto: AddOrderDto[], optionOrderDto: OptionOrderDto): Promise<ResponsePayload> {
     const { deleteMany } = optionOrderDto;
     if (deleteMany) {
       await this.orderModel.deleteMany({});
@@ -185,9 +182,7 @@ export class OrderService {
       const saveData = await this.orderModel.insertMany(mData);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       // console.log(error);
@@ -202,11 +197,11 @@ export class OrderService {
   /**
    * getAllOrders
    * getOrderById
+   *
+   * @param filterOrderDto
+   * @param searchQuery
    */
-  async getAllOrders(
-    filterOrderDto: FilterAndPaginationOrderDto,
-    searchQuery?: string,
-  ): Promise<ResponsePayload> {
+  async getAllOrders(filterOrderDto: FilterAndPaginationOrderDto, searchQuery?: string): Promise<ResponsePayload> {
     const { filter } = filterOrderDto;
     const { pagination } = filterOrderDto;
     const { sort } = filterOrderDto;
@@ -366,11 +361,11 @@ export class OrderService {
   /**
    * updateOrderById
    * updateMultipleOrderById
+   *
+   * @param id
+   * @param updateOrderDto
    */
-  async updateOrderById(
-    id: string,
-    updateOrderDto: UpdateOrderDto,
-  ): Promise<ResponsePayload> {
+  async updateOrderById(id: string, updateOrderDto: UpdateOrderDto): Promise<ResponsePayload> {
     const { name } = updateOrderDto;
     let data;
     try {
@@ -394,17 +389,11 @@ export class OrderService {
     }
   }
 
-  async updateMultipleOrderById(
-    ids: string[],
-    updateOrderDto: UpdateOrderDto,
-  ): Promise<ResponsePayload> {
+  async updateMultipleOrderById(ids: string[], updateOrderDto: UpdateOrderDto): Promise<ResponsePayload> {
     const mIds = ids.map((m) => new ObjectId(m));
 
     try {
-      await this.orderModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateOrderDto },
-      );
+      await this.orderModel.updateMany({ _id: { $in: mIds } }, { $set: updateOrderDto });
 
       return {
         success: true,
@@ -415,10 +404,7 @@ export class OrderService {
     }
   }
 
-  async changeOrderStatus(
-    id: string,
-    updateOrderStatusDto: UpdateOrderStatusDto,
-  ): Promise<ResponsePayload> {
+  async changeOrderStatus(id: string, updateOrderStatusDto: UpdateOrderStatusDto): Promise<ResponsePayload> {
     const { orderStatus } = updateOrderStatusDto;
 
     let data;
@@ -436,9 +422,7 @@ export class OrderService {
       console.log('orderStatus', orderStatus);
       if (orderStatus === 5) {
         deliveryDate = this.utilsService.getLocalDateTime();
-        deliveryDateString = this.utilsService.getDateString(
-          this.utilsService.getLocalDateTime(),
-        );
+        deliveryDateString = this.utilsService.getDateString(this.utilsService.getLocalDateTime());
       } else {
         deliveryDate = null;
         deliveryDateString = null;
@@ -513,8 +497,7 @@ export class OrderService {
       const mData = {
         orderStatus: orderStatus,
         orderTimeline: orderTimeline,
-        paymentStatus:
-          orderStatus === OrderStatus.DELIVERED ? 'paid' : data.paymentStatus,
+        paymentStatus: orderStatus === OrderStatus.DELIVERED ? 'paid' : data.paymentStatus,
         deliveryDate: deliveryDate,
         deliveryDateString: deliveryDateString,
       };
@@ -545,11 +528,11 @@ export class OrderService {
   /**
    * deleteOrderById
    * deleteMultipleOrderById
+   *
+   * @param id
+   * @param checkUsage
    */
-  async deleteOrderById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteOrderById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.orderModel.findById(id);
@@ -570,10 +553,7 @@ export class OrderService {
     }
   }
 
-  async deleteMultipleOrderById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleOrderById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       await this.orderModel.deleteMany({ _id: ids });
       return {

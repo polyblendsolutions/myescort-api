@@ -14,22 +14,18 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
-import { AdminRoles } from '../../../enum/admin-roles.enum';
-import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
+
+import { AreaService } from './area.service';
 import { AdminMetaPermissions } from '../../../decorator/admin-permissions.decorator';
+import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
+import { AddAreaDto, FilterAndPaginationAreaDto, OptionAreaDto, UpdateAreaDto } from '../../../dto/area.dto';
 import { AdminPermissions } from '../../../enum/admin-permission.enum';
-import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
+import { AdminRoles } from '../../../enum/admin-roles.enum';
 import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
+import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
 import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
-import {
-  AddAreaDto,
-  FilterAndPaginationAreaDto,
-  OptionAreaDto,
-  UpdateAreaDto,
-} from '../../../dto/area.dto';
-import { AreaService } from './area.service';
 
 @Controller('area')
 export class AreaController {
@@ -106,10 +102,7 @@ export class AreaController {
   @AdminMetaRoles(AdminRoles.SUPER_ADMIN, AdminRoles.ADMIN)
   @UseGuards(AdminRolesGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async getAreaById(
-    @Param('id', MongoIdValidationPipe) id: string,
-    @Query() select: string,
-  ): Promise<ResponsePayload> {
+  async getAreaById(@Param('id', MongoIdValidationPipe) id: string, @Query() select: string): Promise<ResponsePayload> {
     return await this.areaService.getAreaById(id, select);
   }
 
@@ -136,13 +129,8 @@ export class AreaController {
   @AdminMetaPermissions(AdminPermissions.EDIT)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async updateMultipleAreaById(
-    @Body() updateAreaDto: UpdateAreaDto,
-  ): Promise<ResponsePayload> {
-    return await this.areaService.updateMultipleAreaById(
-      updateAreaDto.ids,
-      updateAreaDto,
-    );
+  async updateMultipleAreaById(@Body() updateAreaDto: UpdateAreaDto): Promise<ResponsePayload> {
+    return await this.areaService.updateMultipleAreaById(updateAreaDto.ids, updateAreaDto);
   }
 
   @Version(VERSION_NEUTRAL)
@@ -172,9 +160,6 @@ export class AreaController {
     @Body() data: { ids: string[] },
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.areaService.deleteMultipleAreaById(
-      data.ids,
-      Boolean(checkUsage),
-    );
+    return await this.areaService.deleteMultipleAreaById(data.ids, Boolean(checkUsage));
   }
 }

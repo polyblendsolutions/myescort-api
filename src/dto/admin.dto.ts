@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -14,10 +15,10 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
-import { GenderTypes } from '../enum/gender-types.enum';
-import { Type } from 'class-transformer';
+
 import { PaginationDto } from './pagination.dto';
 import { AdminRoles } from '../enum/admin-roles.enum';
+import { GenderTypes } from '../enum/gender-types.enum';
 
 export class CreateAdminDto {
   @IsNotEmpty()
@@ -169,4 +170,3 @@ export class UpdateAdminDto {
   @ArrayMaxSize(50)
   ids: string[];
 }
-

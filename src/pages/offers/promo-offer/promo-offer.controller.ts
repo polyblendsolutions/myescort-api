@@ -14,22 +14,23 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
-import { AdminRoles } from '../../../enum/admin-roles.enum';
-import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
-import { AdminMetaPermissions } from '../../../decorator/admin-permissions.decorator';
-import { AdminPermissions } from '../../../enum/admin-permission.enum';
-import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
-import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
+
 import { PromoOfferService } from './promo-offer.service';
+import { AdminMetaPermissions } from '../../../decorator/admin-permissions.decorator';
+import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
 import {
   AddPromoOfferDto,
   FilterAndPaginationPromoOfferDto,
   OptionPromoOfferDto,
   UpdatePromoOfferDto,
 } from '../../../dto/promo-offer.dto';
+import { AdminPermissions } from '../../../enum/admin-permission.enum';
+import { AdminRoles } from '../../../enum/admin-roles.enum';
+import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
+import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
+import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
 
 @Controller('promo-offer')
 export class PromoOfferController {
@@ -40,6 +41,8 @@ export class PromoOfferController {
   /**
    * addPromoOffer
    * insertManyPromoOffer
+   *
+   * @param addPromoOfferDto
    */
   @Post('/add')
   @UsePipes(ValidationPipe)
@@ -69,15 +72,15 @@ export class PromoOfferController {
       option: OptionPromoOfferDto;
     },
   ): Promise<ResponsePayload> {
-    return await this.promoOfferService.insertManyPromoOffer(
-      body.data,
-      body.option,
-    );
+    return await this.promoOfferService.insertManyPromoOffer(body.data, body.option);
   }
 
   /**
    * getAllPromoOffers
    * getPromoOfferById
+   *
+   * @param filterPromoOfferDto
+   * @param searchString
    */
   @Version(VERSION_NEUTRAL)
   @Post('/get-all')
@@ -86,10 +89,7 @@ export class PromoOfferController {
     @Body() filterPromoOfferDto: FilterAndPaginationPromoOfferDto,
     @Query('q') searchString: string,
   ): Promise<ResponsePayload> {
-    return this.promoOfferService.getAllPromoOffers(
-      filterPromoOfferDto,
-      searchString,
-    );
+    return this.promoOfferService.getAllPromoOffers(filterPromoOfferDto, searchString);
   }
 
   @Version(VERSION_NEUTRAL)
@@ -113,6 +113,9 @@ export class PromoOfferController {
   /**
    * updatePromoOfferById
    * updateMultiplePromoOfferById
+   *
+   * @param id
+   * @param updatePromoOfferDto
    */
   @Version(VERSION_NEUTRAL)
   @Put('/update/:id')
@@ -126,10 +129,7 @@ export class PromoOfferController {
     @Param('id', MongoIdValidationPipe) id: string,
     @Body() updatePromoOfferDto: UpdatePromoOfferDto,
   ): Promise<ResponsePayload> {
-    return await this.promoOfferService.updatePromoOfferById(
-      id,
-      updatePromoOfferDto,
-    );
+    return await this.promoOfferService.updatePromoOfferById(id, updatePromoOfferDto);
   }
 
   @Version(VERSION_NEUTRAL)
@@ -140,18 +140,16 @@ export class PromoOfferController {
   @AdminMetaPermissions(AdminPermissions.EDIT)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async updateMultiplePromoOfferById(
-    @Body() updatePromoOfferDto: UpdatePromoOfferDto,
-  ): Promise<ResponsePayload> {
-    return await this.promoOfferService.updateMultiplePromoOfferById(
-      updatePromoOfferDto.ids,
-      updatePromoOfferDto,
-    );
+  async updateMultiplePromoOfferById(@Body() updatePromoOfferDto: UpdatePromoOfferDto): Promise<ResponsePayload> {
+    return await this.promoOfferService.updateMultiplePromoOfferById(updatePromoOfferDto.ids, updatePromoOfferDto);
   }
 
   /**
    * deletePromoOfferById
    * deleteMultiplePromoOfferById
+   *
+   * @param id
+   * @param checkUsage
    */
   @Version(VERSION_NEUTRAL)
   @Delete('/delete/:id')
@@ -165,10 +163,7 @@ export class PromoOfferController {
     @Param('id', MongoIdValidationPipe) id: string,
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.promoOfferService.deletePromoOfferById(
-      id,
-      Boolean(checkUsage),
-    );
+    return await this.promoOfferService.deletePromoOfferById(id, Boolean(checkUsage));
   }
 
   @Version(VERSION_NEUTRAL)
@@ -183,9 +178,6 @@ export class PromoOfferController {
     @Body() data: { ids: string[] },
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.promoOfferService.deleteMultiplePromoOfferById(
-      data.ids,
-      Boolean(checkUsage),
-    );
+    return await this.promoOfferService.deleteMultiplePromoOfferById(data.ids, Boolean(checkUsage));
   }
 }

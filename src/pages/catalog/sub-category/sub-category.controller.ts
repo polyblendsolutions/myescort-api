@@ -14,23 +14,24 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
-import { AdminRoles } from '../../../enum/admin-roles.enum';
-import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
+
+import { SubCategoryService } from './sub-category.service';
 import { AdminMetaPermissions } from '../../../decorator/admin-permissions.decorator';
-import { AdminPermissions } from '../../../enum/admin-permission.enum';
-import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
-import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
+import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
+import { UpdateCategoryDto } from '../../../dto/category.dto';
 import {
   AddSubCategoryDto,
   FilterAndPaginationSubCategoryDto,
   OptionSubCategoryDto,
   UpdateSubCategoryDto,
 } from '../../../dto/sub-category.dto';
-import { SubCategoryService } from './sub-category.service';
-import { UpdateCategoryDto } from '../../../dto/category.dto';
+import { AdminPermissions } from '../../../enum/admin-permission.enum';
+import { AdminRoles } from '../../../enum/admin-roles.enum';
+import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
+import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
+import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
 
 @Controller('sub-category')
 export class SubCategoryController {
@@ -41,6 +42,8 @@ export class SubCategoryController {
   /**
    * addSubCategory
    * insertManySubCategory
+   *
+   * @param addSubCategoryDto
    */
   @Post('/add')
   @UsePipes(ValidationPipe)
@@ -70,16 +73,16 @@ export class SubCategoryController {
       option: OptionSubCategoryDto;
     },
   ): Promise<ResponsePayload> {
-    return await this.subCategoryService.insertManySubCategory(
-      body.data,
-      body.option,
-    );
+    return await this.subCategoryService.insertManySubCategory(body.data, body.option);
   }
 
   /**
    * getAllSubCategories
    * getSubCategoryById
    * changeMultipleSubCategoryStatus()
+   *
+   * @param filterSubCategoryDto
+   * @param searchString
    */
   @Version(VERSION_NEUTRAL)
   @Post('/get-all')
@@ -88,10 +91,7 @@ export class SubCategoryController {
     @Body() filterSubCategoryDto: FilterAndPaginationSubCategoryDto,
     @Query('q') searchString: string,
   ): Promise<ResponsePayload> {
-    return this.subCategoryService.getAllSubCategories(
-      filterSubCategoryDto,
-      searchString,
-    );
+    return this.subCategoryService.getAllSubCategories(filterSubCategoryDto, searchString);
   }
 
   @Version(VERSION_NEUTRAL)
@@ -122,16 +122,16 @@ export class SubCategoryController {
     @Param('id', MongoIdValidationPipe) id: string,
     @Query('select') select: string,
   ): Promise<ResponsePayload> {
-    return await this.subCategoryService.getSubCategoriesByCategoryId(
-      id,
-      select,
-    );
+    return await this.subCategoryService.getSubCategoriesByCategoryId(id, select);
   }
 
   /**
    * updateSubCategoryById()
    * updateMultipleSubCategoryById()
    * changeMultipleSubCategoryStatus()
+   *
+   * @param id
+   * @param updateSubCategoryDto
    */
   @Version(VERSION_NEUTRAL)
   @Put('/update/:id')
@@ -145,10 +145,7 @@ export class SubCategoryController {
     @Param('id', MongoIdValidationPipe) id: string,
     @Body() updateSubCategoryDto: UpdateSubCategoryDto,
   ): Promise<ResponsePayload> {
-    return await this.subCategoryService.updateSubCategoryById(
-      id,
-      updateSubCategoryDto,
-    );
+    return await this.subCategoryService.updateSubCategoryById(id, updateSubCategoryDto);
   }
 
   @Version(VERSION_NEUTRAL)
@@ -159,13 +156,8 @@ export class SubCategoryController {
   @AdminMetaPermissions(AdminPermissions.EDIT)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async updateMultipleSubCategoryById(
-    @Body() updateSubCategoryDto: UpdateSubCategoryDto,
-  ): Promise<ResponsePayload> {
-    return await this.subCategoryService.updateMultipleSubCategoryById(
-      updateSubCategoryDto.ids,
-      updateSubCategoryDto,
-    );
+  async updateMultipleSubCategoryById(@Body() updateSubCategoryDto: UpdateSubCategoryDto): Promise<ResponsePayload> {
+    return await this.subCategoryService.updateMultipleSubCategoryById(updateSubCategoryDto.ids, updateSubCategoryDto);
   }
 
   @Version(VERSION_NEUTRAL)
@@ -176,18 +168,16 @@ export class SubCategoryController {
   @AdminMetaPermissions(AdminPermissions.EDIT)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async changeMultipleSubCategoryStatus(
-    @Body() updateCategoryDto: UpdateCategoryDto,
-  ): Promise<ResponsePayload> {
-    return await this.subCategoryService.changeMultipleSubCategoryStatus(
-      updateCategoryDto.ids,
-      updateCategoryDto,
-    );
+  async changeMultipleSubCategoryStatus(@Body() updateCategoryDto: UpdateCategoryDto): Promise<ResponsePayload> {
+    return await this.subCategoryService.changeMultipleSubCategoryStatus(updateCategoryDto.ids, updateCategoryDto);
   }
 
   /**
    * deleteSubCategoryById
    * deleteMultipleSubCategoryById
+   *
+   * @param id
+   * @param checkUsage
    */
   @Version(VERSION_NEUTRAL)
   @Delete('/delete/:id')
@@ -201,10 +191,7 @@ export class SubCategoryController {
     @Param('id', MongoIdValidationPipe) id: string,
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.subCategoryService.deleteSubCategoryById(
-      id,
-      Boolean(checkUsage),
-    );
+    return await this.subCategoryService.deleteSubCategoryById(id, Boolean(checkUsage));
   }
 
   @Version(VERSION_NEUTRAL)
@@ -219,9 +206,6 @@ export class SubCategoryController {
     @Body() data: { ids: string[] },
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.subCategoryService.deleteMultipleSubCategoryById(
-      data.ids,
-      Boolean(checkUsage),
-    );
+    return await this.subCategoryService.deleteMultipleSubCategoryById(data.ids, Boolean(checkUsage));
   }
 }

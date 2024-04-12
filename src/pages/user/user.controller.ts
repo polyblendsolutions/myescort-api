@@ -14,14 +14,18 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { UserService } from './user.service';
-import { User, UserAuthResponse } from '../../interfaces/user/user.interface';
 import { AuthGuard } from '@nestjs/passport';
+
+import { UserService } from './user.service';
+import { PASSPORT_USER_TOKEN_TYPE } from '../../core/global-variables';
+import { AdminMetaPermissions } from '../../decorator/admin-permissions.decorator';
+import { AdminMetaRoles } from '../../decorator/admin-roles.decorator';
 import { GetUser } from '../../decorator/get-user.decorator';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
+import { ChangePasswordDto } from '../../dto/change-password.dto';
 import {
   AuthUserDto,
   CheckUserDto,
+  CheckNewEmailDto,
   CheckUserRegistrationDto,
   CreateSocialUserDto,
   CreateUserDto,
@@ -30,16 +34,14 @@ import {
   UpdateUserDto,
   UserSelectFieldDto,
 } from '../../dto/user.dto';
-import { MongoIdValidationPipe } from '../../pipes/mongo-id-validation.pipe';
-import { AdminJwtAuthGuard } from '../../guards/admin-jwt-auth.guard';
-import { AdminMetaRoles } from '../../decorator/admin-roles.decorator';
-import { AdminRoles } from '../../enum/admin-roles.enum';
-import { AdminRolesGuard } from '../../guards/admin-roles.guard';
-import { AdminMetaPermissions } from '../../decorator/admin-permissions.decorator';
 import { AdminPermissions } from '../../enum/admin-permission.enum';
+import { AdminRoles } from '../../enum/admin-roles.enum';
+import { AdminJwtAuthGuard } from '../../guards/admin-jwt-auth.guard';
 import { AdminPermissionGuard } from '../../guards/admin-permission.guard';
-import { PASSPORT_USER_TOKEN_TYPE } from '../../core/global-variables';
-import { ChangePasswordDto } from '../../dto/change-password.dto';
+import { AdminRolesGuard } from '../../guards/admin-roles.guard';
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
+import { User, UserAuthResponse } from '../../interfaces/user/user.interface';
+import { MongoIdValidationPipe } from '../../pipes/mongo-id-validation.pipe';
 
 @Controller('user')
 export class UserController {
@@ -70,17 +72,13 @@ export class UserController {
 
   @Post('/signup-and-login')
   @UsePipes(ValidationPipe)
-  async userSignupAndLogin(
-    @Body() createUserDto: CreateUserDto,
-  ): Promise<UserAuthResponse> {
+  async userSignupAndLogin(@Body() createUserDto: CreateUserDto): Promise<UserAuthResponse> {
     return await this.usersService.userSignupAndLogin(createUserDto);
   }
 
   @Post('/social-signup-and-login')
   @UsePipes(ValidationPipe)
-  async userSignupAndLoginSocial(
-    @Body() createUserDto: CreateSocialUserDto,
-  ): Promise<UserAuthResponse> {
+  async userSignupAndLoginSocial(@Body() createUserDto: CreateSocialUserDto): Promise<UserAuthResponse> {
     return await this.usersService.userSignupAndLoginSocial(createUserDto);
   }
 
@@ -90,13 +88,14 @@ export class UserController {
     @Body()
     checkUserRegistrationDto: CheckUserRegistrationDto,
   ): Promise<ResponsePayload> {
-    return await this.usersService.checkUserForRegistration(
-      checkUserRegistrationDto,
-    );
+    return await this.usersService.checkUserForRegistration(checkUserRegistrationDto);
   }
 
   /**
    * Logged-in User Info
+   *
+   * @param userSelectFieldDto
+   * @param user
    */
   @Version(VERSION_NEUTRAL)
   @Get('/logged-in-user-data')
@@ -119,12 +118,7 @@ export class UserController {
   @Version(VERSION_NEUTRAL)
   @Post('/get-all')
   @UsePipes(ValidationPipe)
-  @AdminMetaRoles(
-    AdminRoles.SUPER_ADMIN,
-    AdminRoles.ADMIN,
-    AdminRoles.EDITOR,
-    AdminRoles.ACCOUNTANT,
-  )
+  @AdminMetaRoles(AdminRoles.SUPER_ADMIN, AdminRoles.ADMIN, AdminRoles.EDITOR, AdminRoles.ACCOUNTANT)
   @UseGuards(AdminRolesGuard)
   @UseGuards(AdminJwtAuthGuard)
   async getAllUsersV3(
@@ -139,6 +133,9 @@ export class UserController {
    * Update User by Id
    * Delete User by Id#
    * resetUserPassword()
+   *
+   * @param id
+   * @param userSelectFieldDto
    */
   @Version(VERSION_NEUTRAL)
   @Get('/:id')
@@ -156,10 +153,7 @@ export class UserController {
   @Put('/update-logged-in-user')
   @UsePipes(ValidationPipe)
   @UseGuards(AuthGuard(PASSPORT_USER_TOKEN_TYPE))
-  async updateLoggedInUserInfo(
-    @GetUser() user: User,
-    @Body() updateUserDto: UpdateUserDto,
-  ): Promise<ResponsePayload> {
+  async updateLoggedInUserInfo(@GetUser() user: User, @Body() updateUserDto: UpdateUserDto): Promise<ResponsePayload> {
     return await this.usersService.updateLoggedInUserInfo(user, updateUserDto);
   }
 
@@ -171,28 +165,28 @@ export class UserController {
     @GetUser() user: User,
     @Body() changePasswordDto: ChangePasswordDto,
   ): Promise<ResponsePayload> {
-    return await this.usersService.changeLoggedInUserPassword(
-      user,
-      changePasswordDto,
-    );
+    return await this.usersService.changeLoggedInUserPassword(user, changePasswordDto);
   }
 
   @Version(VERSION_NEUTRAL)
   @Put('/reset-user-password')
   @UsePipes(ValidationPipe)
-  async resetUserPassword(
-    @Body() resetPasswordDto: ResetPasswordDto,
-  ): Promise<ResponsePayload> {
+  async resetUserPassword(@Body() resetPasswordDto: ResetPasswordDto): Promise<ResponsePayload> {
     return await this.usersService.resetUserPassword(resetPasswordDto);
   }
 
   @Version(VERSION_NEUTRAL)
   @Post('/check-user-and-sent-otp')
   @UsePipes(ValidationPipe)
-  async checkUserAndSentOtp(
-    @Body() checkUserDto: CheckUserDto,
-  ): Promise<ResponsePayload> {
+  async checkUserAndSentOtp(@Body() checkUserDto: CheckUserDto): Promise<ResponsePayload> {
     return await this.usersService.checkUserAndSentOtp(checkUserDto);
+  }
+
+  @Version(VERSION_NEUTRAL)
+  @Post('/check-new-email-and-sent-otp')
+  @UsePipes(ValidationPipe)
+  async checkNewEmailAndSentOtp(@Body() body: CheckNewEmailDto): Promise<ResponsePayload> {
+    return await this.usersService.checkNewEmailAndSentOtp(body);
   }
 
   @Version(VERSION_NEUTRAL)
@@ -231,9 +225,7 @@ export class UserController {
   @AdminMetaPermissions(AdminPermissions.DELETE)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async deleteUserById(
-    @Param('id', MongoIdValidationPipe) id: string,
-  ): Promise<ResponsePayload> {
+  async deleteUserById(@Param('id', MongoIdValidationPipe) id: string): Promise<ResponsePayload> {
     return await this.usersService.deleteUserById(id);
   }
 
@@ -249,10 +241,7 @@ export class UserController {
     @Body() data: { ids: string[] },
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.usersService.deleteMultipleUserById(
-      data.ids,
-      Boolean(checkUsage),
-    );
+    return await this.usersService.deleteMultipleUserById(data.ids, Boolean(checkUsage));
   }
 
   // @Version(VERSION_NEUTRAL)

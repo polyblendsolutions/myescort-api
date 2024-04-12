@@ -6,20 +6,16 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ConfigService } from '@nestjs/config';
-import { UtilsService } from '../../../shared/utils/utils.service';
+
+import { AddTagDto, FilterAndPaginationTagDto, OptionTagDto, UpdateTagDto } from '../../../dto/tag.dto';
+import { ErrorCodes } from '../../../enum/error-code.enum';
+import { Product } from '../../../interfaces/common/product.interface';
 import { Tag } from '../../../interfaces/common/tag.interface';
 import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { ErrorCodes } from '../../../enum/error-code.enum';
-import {
-  AddTagDto,
-  FilterAndPaginationTagDto,
-  OptionTagDto,
-  UpdateTagDto,
-} from '../../../dto/tag.dto';
-import { Product } from '../../../interfaces/common/product.interface';
+import { UtilsService } from '../../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -37,6 +33,8 @@ export class TagService {
   /**
    * addTag
    * insertManyTag
+   *
+   * @param addTagDto
    */
   async addTag(addTagDto: AddTagDto): Promise<ResponsePayload> {
     const { name, slug } = addTagDto;
@@ -76,10 +74,7 @@ export class TagService {
     }
   }
 
-  async insertManyTag(
-    addTagsDto: AddTagDto[],
-    optionTagDto: OptionTagDto,
-  ): Promise<ResponsePayload> {
+  async insertManyTag(addTagsDto: AddTagDto[], optionTagDto: OptionTagDto): Promise<ResponsePayload> {
     const { deleteMany } = optionTagDto;
     if (deleteMany) {
       await this.tagModel.deleteMany({});
@@ -96,9 +91,7 @@ export class TagService {
       const saveData = await this.tagModel.insertMany(mData);
       return {
         success: true,
-        message: `${
-          saveData && saveData.length ? saveData.length : 0
-        }  Data Added Success`,
+        message: `${saveData && saveData.length ? saveData.length : 0}  Data Added Success`,
       } as ResponsePayload;
     } catch (error) {
       // console.log(error);
@@ -132,10 +125,7 @@ export class TagService {
     }
   }
 
-  async getAllTags(
-    filterTagDto: FilterAndPaginationTagDto,
-    searchQuery?: string,
-  ): Promise<ResponsePayload> {
+  async getAllTags(filterTagDto: FilterAndPaginationTagDto, searchQuery?: string): Promise<ResponsePayload> {
     const { filter } = filterTagDto;
     const { pagination } = filterTagDto;
     const { sort } = filterTagDto;
@@ -262,11 +252,11 @@ export class TagService {
   /**
    * updateTagById
    * updateMultipleTagById
+   *
+   * @param id
+   * @param updateTagDto
    */
-  async updateTagById(
-    id: string,
-    updateTagDto: UpdateTagDto,
-  ): Promise<ResponsePayload> {
+  async updateTagById(id: string, updateTagDto: UpdateTagDto): Promise<ResponsePayload> {
     try {
       const { name, slug } = updateTagDto;
 
@@ -303,10 +293,7 @@ export class TagService {
     }
   }
 
-  async updateMultipleTagById(
-    ids: string[],
-    updateTagDto: UpdateTagDto,
-  ): Promise<ResponsePayload> {
+  async updateMultipleTagById(ids: string[], updateTagDto: UpdateTagDto): Promise<ResponsePayload> {
     const mIds = ids.map((m) => new ObjectId(m));
 
     // Delete No Multiple Action Data
@@ -315,10 +302,7 @@ export class TagService {
     }
 
     try {
-      await this.tagModel.updateMany(
-        { _id: { $in: mIds } },
-        { $set: updateTagDto },
-      );
+      await this.tagModel.updateMany({ _id: { $in: mIds } }, { $set: updateTagDto });
 
       return {
         success: true,
@@ -332,11 +316,11 @@ export class TagService {
   /**
    * deleteTagById
    * deleteMultipleTagById
+   *
+   * @param id
+   * @param checkUsage
    */
-  async deleteTagById(
-    id: string,
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteTagById(id: string, checkUsage: boolean): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.tagModel.findById(id);
@@ -367,20 +351,14 @@ export class TagService {
     }
   }
 
-  async deleteMultipleTagById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleTagById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       await this.tagModel.deleteMany({ _id: ids });
       // Reset Product Brand Reference
       if (checkUsage) {
         // Update Product
-        await this.productModel.updateMany(
-          {},
-          { $pull: { tags: { $in: mIds } } },
-        );
+        await this.productModel.updateMany({}, { $pull: { tags: { $in: mIds } } });
       }
       return {
         success: true,

@@ -8,23 +8,19 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Model, Types } from 'mongoose';
-import { JwtService } from '@nestjs/jwt';
-import {
-  User,
-  UserAuthResponse,
-  UserJwtPayload,
-} from '../../interfaces/user/user.interface';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
-import { ErrorCodes } from '../../enum/error-code.enum';
+import { Cache } from 'cache-manager';
+import { Model, Types } from 'mongoose';
 
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
+import { ChangePasswordDto } from '../../dto/change-password.dto';
 import {
   AuthSocialUserDto,
   AuthUserDto,
   CheckUserDto,
+  CheckNewEmailDto,
   CheckUserRegistrationDto,
   CreateSocialUserDto,
   CreateUserDto,
@@ -33,12 +29,13 @@ import {
   UpdateUserDto,
   UserSelectFieldDto,
 } from '../../dto/user.dto';
+import { ErrorCodes } from '../../enum/error-code.enum';
 import { AdminAuthResponse } from '../../interfaces/admin/admin.interface';
-import { ChangePasswordDto } from '../../dto/change-password.dto';
-import { Cache } from 'cache-manager';
-import { UtilsService } from '../../shared/utils/utils.service';
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
+import { User, UserAuthResponse, UserJwtPayload } from '../../interfaces/user/user.interface';
 import { EmailService } from '../../shared/email/email.service';
-import { OtpService } from "../otp/otp.service";
+import { UtilsService } from '../../shared/utils/utils.service';
+import { OtpService } from '../otp/otp.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -64,6 +61,8 @@ export class UserService {
    * User Login
    * User Signup & Login
    * checkUserForRegistration()
+   *
+   * @param createUserDto
    */
   async userSignup(createUserDto: CreateUserDto): Promise<User> {
     const { password } = createUserDto;
@@ -138,9 +137,7 @@ export class UserService {
             _id: user._id,
           },
           token: accessToken,
-          tokenExpiredIn: this.configService.get<number>(
-            'userTokenExpiredTime',
-          ),
+          tokenExpiredIn: this.configService.get<number>('userTokenExpiredTime'),
         } as UserAuthResponse;
       } else {
         return {
@@ -161,9 +158,7 @@ export class UserService {
     }
   }
 
-  async userLoginSocial(
-    authUserDto: AuthSocialUserDto,
-  ): Promise<UserAuthResponse> {
+  async userLoginSocial(authUserDto: AuthSocialUserDto): Promise<UserAuthResponse> {
     try {
       const user = (await this.userModel
         .findOne({ username: authUserDto.username })
@@ -207,9 +202,7 @@ export class UserService {
     }
   }
 
-  async userSignupAndLogin(
-    createUserDto: CreateUserDto,
-  ): Promise<UserAuthResponse> {
+  async userSignupAndLogin(createUserDto: CreateUserDto): Promise<UserAuthResponse> {
     try {
       const userData = await this.userModel.findOne({
         username: createUserDto.username,
@@ -251,9 +244,7 @@ export class UserService {
         // `,
         // );
 
-
-          return this.userLogin(authUserDto);
-
+        return this.userLogin(authUserDto);
       }
     } catch (error) {
       console.log(error);
@@ -265,9 +256,7 @@ export class UserService {
     }
   }
 
-  async userSignupAndLoginSocial(
-    createUserDto: CreateSocialUserDto,
-  ): Promise<UserAuthResponse> {
+  async userSignupAndLoginSocial(createUserDto: CreateSocialUserDto): Promise<UserAuthResponse> {
     try {
       const userData = await this.userModel.findOne({
         username: createUserDto.username,
@@ -302,9 +291,7 @@ export class UserService {
     }
   }
 
-  async checkUserForRegistration(
-    checkUserRegistrationDto: CheckUserRegistrationDto,
-  ): Promise<ResponsePayload> {
+  async checkUserForRegistration(checkUserRegistrationDto: CheckUserRegistrationDto): Promise<ResponsePayload> {
     try {
       const userData = await this.userModel.findOne({
         username: checkUserRegistrationDto.email,
@@ -340,11 +327,11 @@ export class UserService {
    * Get All Users (Not Recommended)
    * Get All Users V3 (Filter, Pagination, Select, Sort, Search Query with Aggregation) ** Recommended
    * Get All Users by Search
+   *
+   * @param user
+   * @param selectQuery
    */
-  async getLoggedInUserData(
-    user: User,
-    selectQuery: UserSelectFieldDto,
-  ): Promise<ResponsePayload> {
+  async getLoggedInUserData(user: User, selectQuery: UserSelectFieldDto): Promise<ResponsePayload> {
     try {
       let { select } = selectQuery;
       if (!select) {
@@ -362,10 +349,7 @@ export class UserService {
     }
   }
 
-  async getAllUsers(
-    filterUserDto: FilterAndPaginationUserDto,
-    searchQuery?: string,
-  ): Promise<ResponsePayload> {
+  async getAllUsers(filterUserDto: FilterAndPaginationUserDto, searchQuery?: string): Promise<ResponsePayload> {
     const { filter } = filterUserDto;
     const { pagination } = filterUserDto;
     const { sort } = filterUserDto;
@@ -502,10 +486,7 @@ export class UserService {
         /*** SET CACHE DATA**/
         if (!filter) {
           await this.cacheManager.set(this.cacheAllData, dataAggregates);
-          await this.cacheManager.set(
-            this.cacheDataCount,
-            dataAggregates.length,
-          );
+          await this.cacheManager.set(this.cacheDataCount, dataAggregates.length);
           this.logger.log('Cache Added');
         }
 
@@ -532,10 +513,7 @@ export class UserService {
    * Delete User by Id
    */
 
-  async getUserById(
-    id: string,
-    userSelectFieldDto: UserSelectFieldDto,
-  ): Promise<ResponsePayload> {
+  async getUserById(id: string, userSelectFieldDto: UserSelectFieldDto): Promise<ResponsePayload> {
     try {
       let { select } = userSelectFieldDto;
       if (!select) {
@@ -552,10 +530,7 @@ export class UserService {
     }
   }
 
-  async updateLoggedInUserInfo(
-    users: User,
-    updateUserDto: UpdateUserDto,
-  ): Promise<ResponsePayload> {
+  async updateLoggedInUserInfo(users: User, updateUserDto: UpdateUserDto): Promise<ResponsePayload> {
     const { password, username } = updateUserDto;
     let user;
     try {
@@ -606,10 +581,7 @@ export class UserService {
     }
   }
 
-  async changeLoggedInUserPassword(
-    users: User,
-    changePasswordDto: ChangePasswordDto,
-  ): Promise<ResponsePayload> {
+  async changeLoggedInUserPassword(users: User, changePasswordDto: ChangePasswordDto): Promise<ResponsePayload> {
     const { password, oldPassword } = changePasswordDto;
     let user;
     try {
@@ -647,13 +619,10 @@ export class UserService {
     }
   }
 
-  async checkUserAndSentOtp(
-    checkUserDto: CheckUserDto,
-  ): Promise<ResponsePayload> {
+  async checkUserAndSentOtp(checkUserDto: CheckUserDto): Promise<ResponsePayload> {
     try {
       const { email, username } = checkUserDto;
       const user = await this.userModel.findOne({ username: username });
-
 
       if (!user) {
         return this.otpService.generateOtpWithEmail({ email });
@@ -663,22 +632,41 @@ export class UserService {
           message: 'Sorry! This username is already registered.',
         } as ResponsePayload;
       }
-
     } catch (err) {
       console.log(err);
       throw new InternalServerErrorException();
     }
   }
 
-  async resetUserPassword(
-    resetPasswordDto: ResetPasswordDto,
-  ): Promise<ResponsePayload> {
+  async checkNewEmailAndSentOtp(checkUserDto: CheckNewEmailDto): Promise<ResponsePayload> {
+    try {
+      const { email, newEmail } = checkUserDto;
+      const user = await this.userModel.findOne({ email });
+      if (!user) {
+        return {
+          success: false,
+          message: 'Sorry! This email is not registered.',
+        } as ResponsePayload;
+      }
+      const newEmailExist = await this.userModel.findOne({ email: newEmail });
+      if (newEmailExist) {
+        return {
+          success: false,
+          message: 'Sorry! This email is already registered.',
+        } as ResponsePayload;
+      }
+      return this.otpService.generateOtpWithEmail({ email: newEmail });
+    } catch (err) {
+      console.log(err);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async resetUserPassword(resetPasswordDto: ResetPasswordDto): Promise<ResponsePayload> {
     const { password, phone } = resetPasswordDto;
     let user;
     try {
-      user = await this.userModel
-        .findOne({ username: phone })
-        .select('password');
+      user = await this.userModel.findOne({ username: phone }).select('password');
     } catch (err) {
       throw new InternalServerErrorException();
     }
@@ -794,10 +782,7 @@ export class UserService {
     }
   }
 
-  async deleteMultipleUserById(
-    ids: string[],
-    checkUsage: boolean,
-  ): Promise<ResponsePayload> {
+  async deleteMultipleUserById(ids: string[], checkUsage: boolean): Promise<ResponsePayload> {
     try {
       const mIds = ids.map((m) => new ObjectId(m));
       await this.userModel.deleteMany({ _id: mIds });

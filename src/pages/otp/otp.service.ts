@@ -1,15 +1,12 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+
 import { AddOtpDto, ValidateOtpDto } from '../../dto/otp.dto';
-import { UtilsService } from '../../shared/utils/utils.service';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 import { Otp } from '../../interfaces/common/otp.interface';
-import { EmailService } from "../../shared/email/email.service";
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
+import { EmailService } from '../../shared/email/email.service';
+import { UtilsService } from '../../shared/utils/utils.service';
 
 const ObjectId = Types.ObjectId;
 
@@ -28,6 +25,8 @@ export class OtpService {
    * OTP FUNCTIONS
    * generateOtpWithEmail()
    * validateOtpWithEmail()
+   *
+   * @param addOtpDto
    */
   async generateOtpWithEmail(addOtpDto: AddOtpDto): Promise<ResponsePayload> {
     try {
@@ -58,7 +57,7 @@ export class OtpService {
           `
         <h5>Please enter this OTP code for complete registration.</h5>
         <p>Your website otp code is ${code}</p>
-        `
+        `,
         );
         console.log(code);
 
@@ -88,7 +87,7 @@ export class OtpService {
           `
         <h5>Please enter this OTP code for complete registration.</h5>
         <p>Your website otp code is ${code}</p>
-        `
+        `,
         );
 
         console.log(code);
@@ -104,9 +103,7 @@ export class OtpService {
     }
   }
 
-  async validateOtpWithEmail(
-    ValidateOtpDto: ValidateOtpDto,
-  ): Promise<ResponsePayload> {
+  async validateOtpWithEmail(ValidateOtpDto: ValidateOtpDto): Promise<ResponsePayload> {
     try {
       const { email } = ValidateOtpDto;
       const { code } = ValidateOtpDto;
@@ -114,11 +111,7 @@ export class OtpService {
       const otpData = await this.otpModel.findOne({ email });
 
       if (otpData) {
-        const isExpired = this.utilsService.getDateDifference(
-          new Date(),
-          new Date(otpData.expireTime),
-          'seconds',
-        );
+        const isExpired = this.utilsService.getDateDifference(new Date(), new Date(otpData.expireTime), 'seconds');
 
         if (isExpired <= 0) {
           return {

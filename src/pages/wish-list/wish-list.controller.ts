@@ -13,13 +13,14 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { AddWishListDto, UpdateWishListDto, UpdateWishListQty } from '../../dto/wish-list.dto';
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
-import { MongoIdValidationPipe } from '../../pipes/mongo-id-validation.pipe';
+
 import { WishListService } from './wish-list.service';
-import { UserJwtAuthGuard } from '../../guards/user-jwt-auth.guard';
-import { User } from '../../interfaces/user/user.interface';
 import { GetTokenUser } from '../../decorator/get-token-user.decorator';
+import { AddWishListDto, UpdateWishListDto, UpdateWishListQty } from '../../dto/wish-list.dto';
+import { UserJwtAuthGuard } from '../../guards/user-jwt-auth.guard';
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
+import { User } from '../../interfaces/user/user.interface';
+import { MongoIdValidationPipe } from '../../pipes/mongo-id-validation.pipe';
 
 @Controller('wishList')
 export class WishListController {
@@ -29,6 +30,9 @@ export class WishListController {
 
   /**
    * addToWishList()
+   *
+   * @param addWishListDto
+   * @param user
    */
   @Post('/add-to-wish-list')
   @UsePipes(ValidationPipe)
@@ -54,6 +58,8 @@ export class WishListController {
 
   /**
    * getWishListByUserId()
+   *
+   * @param user
    */
   @Version(VERSION_NEUTRAL)
   @Get('/get-wish-lists-by-user')
@@ -65,6 +71,9 @@ export class WishListController {
 
   /**
    * deleteWishListById()
+   *
+   * @param id
+   * @param user
    */
   @Version(VERSION_NEUTRAL)
   @Delete('/delete/:id')
@@ -79,6 +88,9 @@ export class WishListController {
 
   /**
    * updateWishListDyId()
+   *
+   * @param id
+   * @param updateWishListDto
    */
   @Version(VERSION_NEUTRAL)
   @Put('/update/:id')
@@ -94,6 +106,9 @@ export class WishListController {
 
   /**
    * updateWishListDyId()
+   *
+   * @param id
+   * @param updateWishListQty
    */
   @Version(VERSION_NEUTRAL)
   @Put('/update-qty/:id')

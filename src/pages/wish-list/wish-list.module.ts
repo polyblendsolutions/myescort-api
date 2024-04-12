@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ProductSchema } from '../../schema/product.schema';
+
 import { WishListController } from './wish-list.controller';
 import { WishListService } from './wish-list.service';
-import { UserSchema } from "../../schema/user.schema";
-import {WishListSchema} from '../../schema/wish-list.schema';
+import { ProductSchema } from '../../schema/product.schema';
+import { UserSchema } from '../../schema/user.schema';
+import { WishListSchema } from '../../schema/wish-list.schema';
 
 @Module({
   imports: [

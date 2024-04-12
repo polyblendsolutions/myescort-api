@@ -14,13 +14,11 @@ import {
   Version,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
-import { AdminRoles } from '../../../enum/admin-roles.enum';
-import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
+
+import { AuthorService } from './author.service';
 import { AdminMetaPermissions } from '../../../decorator/admin-permissions.decorator';
-import { AdminPermissions } from '../../../enum/admin-permission.enum';
-import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
-import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminMetaRoles } from '../../../decorator/admin-roles.decorator';
+import { GetTokenUser } from '../../../decorator/get-token-user.decorator';
 import {
   AddAuthorDto,
   CheckAuthorDto,
@@ -28,12 +26,15 @@ import {
   OptionAuthorDto,
   UpdateAuthorDto,
 } from '../../../dto/author.dto';
-import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
-import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
-import { AuthorService } from './author.service';
+import { AdminPermissions } from '../../../enum/admin-permission.enum';
+import { AdminRoles } from '../../../enum/admin-roles.enum';
+import { AdminJwtAuthGuard } from '../../../guards/admin-jwt-auth.guard';
+import { AdminPermissionGuard } from '../../../guards/admin-permission.guard';
+import { AdminRolesGuard } from '../../../guards/admin-roles.guard';
 import { UserJwtAuthGuard } from '../../../guards/user-jwt-auth.guard';
-import { GetTokenUser } from '../../../decorator/get-token-user.decorator';
+import { ResponsePayload } from '../../../interfaces/core/response-payload.interface';
 import { User } from '../../../interfaces/user/user.interface';
+import { MongoIdValidationPipe } from '../../../pipes/mongo-id-validation.pipe';
 
 @Controller('author')
 export class AuthorController {
@@ -44,6 +45,8 @@ export class AuthorController {
   /**
    * addAuthor
    * insertManyAuthor
+   *
+   * @param addAuthorDto
    */
   @Post('/add')
   // @UsePipes(ValidationPipe)
@@ -80,6 +83,9 @@ export class AuthorController {
   /**
    * getAllAuthors
    * getAuthorById
+   *
+   * @param filterAuthorDto
+   * @param searchString
    */
   @Version(VERSION_NEUTRAL)
   @Post('/get-all')
@@ -109,6 +115,9 @@ export class AuthorController {
   /**
    * updateAuthorById
    * updateMultipleAuthorById
+   *
+   * @param id
+   * @param updateAuthorDto
    */
   @Version(VERSION_NEUTRAL)
   @Put('/update/:id')
@@ -133,18 +142,16 @@ export class AuthorController {
   @AdminMetaPermissions(AdminPermissions.EDIT)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async updateMultipleAuthorById(
-    @Body() updateAuthorDto: UpdateAuthorDto,
-  ): Promise<ResponsePayload> {
-    return await this.authorService.updateMultipleAuthorById(
-      updateAuthorDto.ids,
-      updateAuthorDto,
-    );
+  async updateMultipleAuthorById(@Body() updateAuthorDto: UpdateAuthorDto): Promise<ResponsePayload> {
+    return await this.authorService.updateMultipleAuthorById(updateAuthorDto.ids, updateAuthorDto);
   }
 
   /**
    * deleteAuthorById
    * deleteMultipleAuthorById
+   *
+   * @param id
+   * @param checkUsage
    */
   @Version(VERSION_NEUTRAL)
   @Delete('/delete/:id')
@@ -173,10 +180,7 @@ export class AuthorController {
     @Body() data: { ids: string[] },
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
-    return await this.authorService.deleteMultipleAuthorById(
-      data.ids,
-      Boolean(checkUsage),
-    );
+    return await this.authorService.deleteMultipleAuthorById(data.ids, Boolean(checkUsage));
   }
 
   @Post('/check-author-availability')
@@ -186,9 +190,6 @@ export class AuthorController {
     @GetTokenUser() user: User,
     @Body() checkAuthorDto: CheckAuthorDto,
   ): Promise<ResponsePayload> {
-    return await this.authorService.checkAuthorAvailability(
-      user,
-      checkAuthorDto,
-    );
+    return await this.authorService.checkAuthorAvailability(user, checkAuthorDto);
   }
 }

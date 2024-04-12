@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+import * as path from 'path';
+
 import {
   Body,
   Controller,
@@ -15,28 +18,17 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import {
-  editFileName,
-  getUploadPath,
-  imageFileFilter,
-} from './file-upload.utils';
-import { UploadService } from './upload.service';
-import {
-  ImageUploadResponse,
-  ResponsePayload,
-} from '../../interfaces/core/response-payload.interface';
-import * as path from 'path';
 import * as sharp from 'sharp';
-import * as fs from 'fs';
+
+import { editFileName, getUploadPath, imageFileFilter } from './file-upload.utils';
+import { UploadService } from './upload.service';
+import { ImageUploadResponse, ResponsePayload } from '../../interfaces/core/response-payload.interface';
 
 @Controller('upload')
 export class UploadController {
   private logger = new Logger(UploadController.name);
 
-  constructor(
-    private configService: ConfigService,
-    private uploadService: UploadService,
-  ) {}
+  constructor(private configService: ConfigService, private uploadService: UploadService) {}
 
   /**
    * SINGLE IMAGE
@@ -45,6 +37,9 @@ export class UploadController {
    * GET IMAGE
    * DELETE SINGLE IMAGE
    * DELETE MULTIPLE IMAGE
+   *
+   * @param file
+   * @param req
    */
   @Post('single-image')
   @UseInterceptors(
@@ -59,13 +54,9 @@ export class UploadController {
       fileFilter: imageFileFilter,
     }),
   )
-  async uploadSingleImage(
-    @UploadedFile() file: Express.Multer.File,
-    @Req() req,
-  ) {
+  async uploadSingleImage(@UploadedFile() file: Express.Multer.File, @Req() req) {
     const isProduction = this.configService.get<boolean>('productionBuild');
-    const baseurl =
-      req.protocol + `${isProduction ? 's' : ''}://` + req.get('host') + '/api';
+    const baseurl = req.protocol + `${isProduction ? 's' : ''}://` + req.get('host') + '/api';
     const path = file.path;
     const url = `${baseurl}/${path}`;
     return {
@@ -90,18 +81,10 @@ export class UploadController {
       fileFilter: imageFileFilter,
     }),
   )
-  async uploadSingleImageV2(
-    @UploadedFile() file: Express.Multer.File,
-    @Req() req,
-    @Body() body,
-  ) {
+  async uploadSingleImageV2(@UploadedFile() file: Express.Multer.File, @Req() req, @Body() body) {
     const isProduction = this.configService.get<boolean>('productionBuild');
 
-    if (
-      body &&
-      body['convert'] &&
-      body['convert'].toString().toLowerCase() === 'yes'
-    ) {
+    if (body && body['convert'] && body['convert'].toString().toLowerCase() === 'yes') {
       const quality: number = body['quality'] ? Number(body['quality']) : 85;
       const width: number = body['width'] ? Number(body['width']) : null;
       const height: number = body['height'] ? Number(body['height']) : null;
@@ -116,11 +99,7 @@ export class UploadController {
         .webp({ effort: 4, quality: quality })
         .toFile(path.join(dir, newFilename));
 
-      const baseurl =
-        req.protocol +
-        `${isProduction ? 's' : ''}://` +
-        req.get('host') +
-        '/api';
+      const baseurl = req.protocol + `${isProduction ? 's' : ''}://` + req.get('host') + '/api';
       const url = `${baseurl}/${newPath}`;
 
       // Delete Images
@@ -132,11 +111,7 @@ export class UploadController {
         url,
       };
     } else {
-      const baseurl =
-        req.protocol +
-        `${isProduction ? 's' : ''}://` +
-        req.get('host') +
-        '/api';
+      const baseurl = req.protocol + `${isProduction ? 's' : ''}://` + req.get('host') + '/api';
       const path = file.path;
       const url = `${baseurl}/${path}`;
       return {
@@ -162,8 +137,7 @@ export class UploadController {
     @Req() req,
   ): Promise<ImageUploadResponse[]> {
     const isProduction = this.configService.get<boolean>('productionBuild');
-    const baseurl =
-      req.protocol + `${isProduction ? 's' : ''}://` + req.get('host') + '/api';
+    const baseurl = req.protocol + `${isProduction ? 's' : ''}://` + req.get('host') + '/api';
     const response: ImageUploadResponse[] = [];
     files.forEach((file) => {
       const fileResponse = {
@@ -194,14 +168,9 @@ export class UploadController {
     @Body() body,
   ): Promise<ImageUploadResponse[]> {
     const isProduction = this.configService.get<boolean>('productionBuild');
-    const baseurl =
-      req.protocol + `${isProduction ? 's' : ''}://` + req.get('host') + '/api';
+    const baseurl = req.protocol + `${isProduction ? 's' : ''}://` + req.get('host') + '/api';
 
-    if (
-      body &&
-      body['convert'] &&
-      body['convert'].toString().toLowerCase() === 'yes'
-    ) {
+    if (body && body['convert'] && body['convert'].toString().toLowerCase() === 'yes') {
       const quality: number = body['quality'] ? Number(body['quality']) : 85;
       const width: number = body['width'] ? Number(body['width']) : null;
       const height: number = body['height'] ? Number(body['height']) : null;
@@ -250,26 +219,18 @@ export class UploadController {
   }
 
   @Post('delete-single-image')
-  deleteSingleFile(
-    @Body('url') url: string,
-    @Req() req,
-  ): Promise<ResponsePayload> {
+  deleteSingleFile(@Body('url') url: string, @Req() req): Promise<ResponsePayload> {
     const isProduction = this.configService.get<boolean>('productionBuild');
-    const baseurl =
-      req.protocol + `${isProduction ? 's' : ''}://` + req.get('host') + '/api';
+    const baseurl = req.protocol + `${isProduction ? 's' : ''}://` + req.get('host') + '/api';
     const path = `.${url.replace(baseurl, '')}`;
     console.log('path', path);
     return this.uploadService.deleteSingleFile(path);
   }
 
   @Post('delete-multiple-image')
-  deleteMultipleFile(
-    @Body('url') url: string[],
-    @Req() req,
-  ): Promise<ResponsePayload> {
+  deleteMultipleFile(@Body('url') url: string[], @Req() req): Promise<ResponsePayload> {
     const isProduction = this.configService.get<boolean>('productionBuild');
-    const baseurl =
-      req.protocol + `${isProduction ? 's' : ''}://` + req.get('host') + '/api';
+    const baseurl = req.protocol + `${isProduction ? 's' : ''}://` + req.get('host') + '/api';
     return this.uploadService.deleteMultipleFile(baseurl, url);
   }
 }

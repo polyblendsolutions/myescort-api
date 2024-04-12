@@ -1,6 +1,13 @@
 import * as mongoose from 'mongoose';
 import { Schema } from 'mongoose';
 
+enum VerifiedStatus {
+  Unverified = 0,
+  Pending = 1,
+  Verified = 2,
+  Rejected = 3,
+}
+
 export const UserSchema = new mongoose.Schema(
   {
     name: {
@@ -88,7 +95,13 @@ export const UserSchema = new mongoose.Schema(
       type: Boolean,
       required: false,
     },
-    varifiedImage:{
+    verifiedStatus: {
+      type: Number,
+      required: false,
+      enum: [VerifiedStatus.Pending, VerifiedStatus.Rejected, VerifiedStatus.Unverified, VerifiedStatus.Verified],
+      default: VerifiedStatus.Unverified,
+    },
+    varifiedImage: {
       type: String,
       required: false,
     },

@@ -1,5 +1,6 @@
 import * as mongoose from 'mongoose';
 import { Schema } from 'mongoose';
+
 import { PRISING_MODULES_SUB_SCHEMA } from './sub-schema.schema';
 
 export const ProductSchema = new mongoose.Schema(
@@ -556,8 +557,8 @@ export const ProductSchema = new mongoose.Schema(
       required: false,
     },
     publishDate: {
-      type: Date
-    }
+      type: Date,
+    },
   },
   {
     versionKey: false,

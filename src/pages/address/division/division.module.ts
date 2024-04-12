@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+
 import { DivisionController } from './division.controller';
 import { DivisionService } from './division.service';
-import { MongooseModule } from '@nestjs/mongoose';
-import { DivisionSchema } from '../../../schema/division.schema';
 import { AreaSchema } from '../../../schema/area.schema';
+import { DivisionSchema } from '../../../schema/division.schema';
 import { ZoneSchema } from '../../../schema/zone.schema';
 
 @Module({

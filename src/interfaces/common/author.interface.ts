@@ -6,7 +6,7 @@ export interface Author {
   description?: string;
   image?: string;
   birthDate?: Date;
-  priority?:number;
+  priority?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }

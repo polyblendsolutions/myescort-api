@@ -26,14 +26,13 @@ export const AuthorSchema = new mongoose.Schema(
       required: false,
     },
     birthDate: {
-      type:Date,
+      type: Date,
       required: false,
     },
     priority: {
       type: Number,
       required: false,
     },
-    
   },
   {
     versionKey: false,
