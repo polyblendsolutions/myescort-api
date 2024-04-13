@@ -302,20 +302,20 @@ export class UserService {
         // });
         return {
           success: true,
-          message: 'Success! Otp has been sent to your phone number.',
+          message: 'Success! Otp has been sent to your email.',
           data: { username: userData.username, otp: true },
         } as ResponsePayload;
       } else {
         return {
           success: false,
-          message: 'User not exists. Please check your phone number',
+          message: 'User not exists. Please check your email',
           data: { otp: false },
         } as ResponsePayload;
       }
     } catch (error) {
       console.log(error);
       if (error.code && error.code.toString() === ErrorCodes.UNIQUE_FIELD) {
-        throw new ConflictException('Phone Number is already exists');
+        throw new ConflictException('Email is already exists');
       } else {
         throw new InternalServerErrorException();
       }
