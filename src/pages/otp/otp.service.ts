@@ -63,7 +63,7 @@ export class OtpService {
 
         return {
           success: true,
-          message: 'Success! OTP code has been sent to your phone number.',
+          message: 'Success! OTP code has been sent to your email.',
           data,
         } as ResponsePayload;
       } else {
@@ -94,7 +94,7 @@ export class OtpService {
 
         return {
           success: true,
-          message: 'Success! OTP code has been sent to your phone number.',
+          message: 'Success! OTP code has been sent to your email.',
           data,
         } as ResponsePayload;
       }
