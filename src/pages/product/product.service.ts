@@ -41,7 +41,7 @@ export class ProductService {
     private configService: ConfigService,
     private utilsService: UtilsService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  ) { }
 
   /**
    * addProduct
@@ -594,28 +594,14 @@ export class ProductService {
     // Modify Id as Object ID
     // Match
     if (filter) {
-      if (filter && filter['user._id']) {
-        filter['user._id'] = new ObjectId(filter['user._id']);
-      }
+      const keysToConvert = ['user._id', 'category._id', 'subCategory._id', 'brand._id', 'publisher._id', 'tags._id'];
 
-      if (filter && filter['category._id']) {
-        filter['category._id'] = new ObjectId(filter['category._id']);
-      }
-
-      if (filter && filter['subCategory._id']) {
-        filter['subCategory._id'] = new ObjectId(filter['subCategory._id']);
-      }
-
-      if (filter && filter['brand._id']) {
-        filter['brand._id'] = new ObjectId(filter['brand._id']);
-      }
-      if (filter && filter['publisher._id']) {
-        filter['publisher._id'] = new ObjectId(filter['publisher._id']);
-      }
-
-      if (filter && filter['tags._id']) {
-        filter['tags._id'] = new ObjectId(filter['tags._id']);
-      }
+      // Convert specified keys to ObjectId
+      keysToConvert.forEach(key => {
+        if (filter && filter[key]) {
+          filter[key] = new ObjectId(filter[key]);
+        }
+      });
 
       if (filter && filter['createdAt']) {
         filter['createdAt']['$gte'] = new Date(filter['createdAt']['$gte']);
