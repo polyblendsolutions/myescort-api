@@ -121,6 +121,23 @@ export class ProductController {
     return this.productService.getAllProducts(filterProductDto, searchString);
   }
 
+  /**
+   * getAllProducts
+   * getProductById
+   */
+  @Version(VERSION_NEUTRAL)
+  @Post('/admin-get-all')
+  @AdminMetaRoles(AdminRoles.SUPER_ADMIN, AdminRoles.ADMIN)
+  @UseGuards(AdminRolesGuard)
+  @UseGuards(AdminJwtAuthGuard)
+  @UsePipes(ValidationPipe)
+  async getAdminAllProducts(
+    @Body() filterProductDto: FilterAndPaginationProductDto,
+    @Query('q') searchString: string,
+  ): Promise<ResponsePayload> {
+    return this.productService.getAllAdminProducts(filterProductDto, searchString);
+  }
+
   @Version(VERSION_NEUTRAL)
   @Post('/get-all-by-user')
   @UsePipes(ValidationPipe)
