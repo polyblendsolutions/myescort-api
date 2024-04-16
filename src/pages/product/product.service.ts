@@ -233,7 +233,7 @@ export class ProductService {
     const { sort } = filterProductDto;
     const { select } = filterProductDto;
     const { filterGroup } = filterProductDto;
-
+    let showExpired = false;
     // if (
     //   pagination.currentPage < 1 &&
     //   filter == null &&
@@ -291,6 +291,11 @@ export class ProductService {
 
       if (filter && filter['tags._id']) {
         filter['tags._id'] = new ObjectId(filter['tags._id']);
+      }
+
+      if (filter && filter['showExpired']) {
+        showExpired = filter['showExpired'];
+        delete filter['showExpired'];
       }
 
       if (filter && filter['createdAt']) {
@@ -487,12 +492,14 @@ export class ProductService {
     }
 
     try {
-      aggregateStages[0]['$match']['publishDate'] = {};
-      aggregateStages[0]['$match']['publishDate']['$gte'] = new Date(
-        new Date().getFullYear(),
-        new Date().getMonth() - 1,
-        new Date().getDate(),
-      );
+      if (!showExpired) {
+        aggregateStages[0]['$match']['publishDate'] = {};
+        aggregateStages[0]['$match']['publishDate']['$gte'] = new Date(
+          new Date().getFullYear(),
+          new Date().getMonth() - 1,
+          new Date().getDate(),
+        );
+      }
       // Main
       const dataAggregates = await this.productModel.aggregate(aggregateStages);
 
