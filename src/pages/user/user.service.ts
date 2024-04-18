@@ -36,6 +36,7 @@ import { User, UserAuthResponse, UserJwtPayload } from '../../interfaces/user/us
 import { EmailService } from '../../shared/email/email.service';
 import { UtilsService } from '../../shared/utils/utils.service';
 import { OtpService } from '../otp/otp.service';
+import { Product } from 'src/interfaces/common/product.interface';
 
 const ObjectId = Types.ObjectId;
 
@@ -48,6 +49,7 @@ export class UserService {
 
   constructor(
     @InjectModel('User') private readonly userModel: Model<User>,
+    @InjectModel('Product') private readonly productModel: Model<Product>,
     protected jwtService: JwtService,
     private configService: ConfigService,
     private utilsService: UtilsService,
@@ -731,6 +733,15 @@ export class UserService {
       }
       // Delete No Action Data
       delete updateUserDto.password;
+      if(updateUserDto['isVerfied'] && updateUserDto['verifiedStatus'] === 2){
+        const product = await this.productModel.findOneAndUpdate({['user._id']:id, publishDate: {$gte: new Date(
+          new Date().getFullYear(),
+          new Date().getMonth() - 1,
+          new Date().getDate(),
+        )}}, {
+          $set: {'user.isVerfied': true}
+        })
+      }
       await this.userModel.findByIdAndUpdate(id, {
         $set: updateUserDto,
       });
