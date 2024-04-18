@@ -153,6 +153,14 @@ export const UserSchema = new mongoose.Schema(
         ref: 'Coupon',
       },
     ],
+    subscriptionId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Subscription',
+    },
+    isVipStatusActive: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     versionKey: false,

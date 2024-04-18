@@ -33,6 +33,7 @@ import {
   ResetPasswordDto,
   UpdateUserDto,
   UserSelectFieldDto,
+  UpdateUserSubscriptionPlanDto,
 } from '../../dto/user.dto';
 import { AdminPermissions } from '../../enum/admin-permission.enum';
 import { AdminRoles } from '../../enum/admin-roles.enum';
@@ -242,6 +243,37 @@ export class UserController {
     @Query('checkUsage') checkUsage: boolean,
   ): Promise<ResponsePayload> {
     return await this.usersService.deleteMultipleUserById(data.ids, Boolean(checkUsage));
+  }
+
+  @Version(VERSION_NEUTRAL)
+  @Post('/activate-vip/:id')
+  @UsePipes(ValidationPipe)
+  @AdminMetaRoles(AdminRoles.SUPER_ADMIN)
+  @UseGuards(AdminRolesGuard)
+  @AdminMetaPermissions(AdminPermissions.DELETE)
+  @UseGuards(AdminPermissionGuard)
+  @UseGuards(AdminJwtAuthGuard)
+  async activateVIPBadge(
+    @Param('id', MongoIdValidationPipe) id: string,
+    @Body() data: UpdateUserSubscriptionPlanDto,
+  ): Promise<ResponsePayload> {
+    return await this.usersService.activateVipAndCreatePayment(id, data);
+  }
+
+  @Version(VERSION_NEUTRAL)
+  @Post('/create-subscription')
+  @UsePipes(ValidationPipe)
+  async createSubscription(
+    @Body() data: any,
+  ): Promise<ResponsePayload> {
+    return await this.usersService.createSubscription(data);
+  }
+
+  @Version(VERSION_NEUTRAL)
+  @Post('/subscriptions')
+  async getSubscriptions(
+  ): Promise<ResponsePayload> {
+    return await this.usersService.getSubscriptions();
   }
 
   // @Version(VERSION_NEUTRAL)

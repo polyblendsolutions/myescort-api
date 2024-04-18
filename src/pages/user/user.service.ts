@@ -28,6 +28,7 @@ import {
   ResetPasswordDto,
   UpdateUserDto,
   UserSelectFieldDto,
+  UpdateUserSubscriptionPlanDto,
 } from '../../dto/user.dto';
 import { ErrorCodes } from '../../enum/error-code.enum';
 import { AdminAuthResponse } from '../../interfaces/admin/admin.interface';
@@ -36,6 +37,7 @@ import { User, UserAuthResponse, UserJwtPayload } from '../../interfaces/user/us
 import { EmailService } from '../../shared/email/email.service';
 import { UtilsService } from '../../shared/utils/utils.service';
 import { OtpService } from '../otp/otp.service';
+import { Subscription } from 'src/interfaces/common/subscription.interface';
 
 const ObjectId = Types.ObjectId;
 
@@ -48,6 +50,7 @@ export class UserService {
 
   constructor(
     @InjectModel('User') private readonly userModel: Model<User>,
+    @InjectModel('Subscriptions') private readonly subscriptionModel: Model<Subscription>,
     protected jwtService: JwtService,
     private configService: ConfigService,
     private utilsService: UtilsService,
@@ -800,6 +803,73 @@ export class UserService {
       } as ResponsePayload;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
+    }
+  }
+
+  async activateVipAndCreatePayment(
+    id: string,
+    data: UpdateUserSubscriptionPlanDto,
+  ): Promise<ResponsePayload> {
+    const { subscriptionId } = data;
+    let user, subscription;
+    
+    //check if user exists
+    try {
+      user = await this.userModel.findById(id);
+    } catch (err) {
+      throw new InternalServerErrorException();
+    }
+    if (!user) {
+      throw new NotFoundException('No User found!');
+    }
+
+    //check if subscription exists
+    try {
+      subscription = await this.subscriptionModel.findOne({ _id: subscriptionId }).lean(true);
+    } catch (err) {
+      throw new InternalServerErrorException();
+    }
+    if (!subscription) {
+      throw new NotFoundException('No subscription found!');
+    }
+    try {
+      await this.userModel.findByIdAndUpdate(id, {
+        $set: { subscriptionId, isVipStatusActive: true },
+      });
+      return {
+        success: true,
+        message: 'Success',
+      } as ResponsePayload;
+    } catch (err) {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async getSubscriptions(): Promise<ResponsePayload> {
+    try {
+      const subscriptions = await this.subscriptionModel.find().sort({ days: 1 });
+      return {
+        success: true,
+        message: 'Success',
+        data: subscriptions
+      } as ResponsePayload;
+    } catch (err) {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async createSubscription(
+    data: any,
+  ): Promise<ResponsePayload> {
+    try {
+      const subscriptionData = await this.subscriptionModel.create(data);
+      subscriptionData
+      return {
+        success: true,
+        message: 'Success',
+      } as ResponsePayload;
+    } catch (err) {
+      throw new InternalServerErrorException();
     }
   }
 }
