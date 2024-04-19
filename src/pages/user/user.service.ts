@@ -36,6 +36,8 @@ import { User, UserAuthResponse, UserJwtPayload } from '../../interfaces/user/us
 import { EmailService } from '../../shared/email/email.service';
 import { UtilsService } from '../../shared/utils/utils.service';
 import { OtpService } from '../otp/otp.service';
+import { Product } from 'src/interfaces/common/product.interface';
+import { VerifiedStatus } from 'src/enum/verified-status.enum';
 
 const ObjectId = Types.ObjectId;
 
@@ -48,13 +50,14 @@ export class UserService {
 
   constructor(
     @InjectModel('User') private readonly userModel: Model<User>,
+    @InjectModel('Product') private readonly productModel: Model<Product>,
     protected jwtService: JwtService,
     private configService: ConfigService,
     private utilsService: UtilsService,
     private emailService: EmailService,
     private otpService: OtpService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  ) { }
 
   /**
    * User Signup
@@ -731,6 +734,11 @@ export class UserService {
       }
       // Delete No Action Data
       delete updateUserDto.password;
+      if (updateUserDto['isVerfied'] && updateUserDto['verifiedStatus'] === VerifiedStatus.Verified) {
+        const product = await this.productModel.updateMany({ ['user._id']: id }, {
+          $set: { 'user.isVerfied': true }
+        })
+      }
       await this.userModel.findByIdAndUpdate(id, {
         $set: updateUserDto,
       });
