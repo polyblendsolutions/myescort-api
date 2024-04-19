@@ -57,7 +57,7 @@ export class UserService {
     private emailService: EmailService,
     private otpService: OtpService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  ) { }
 
   /**
    * User Signup
@@ -734,13 +734,9 @@ export class UserService {
       }
       // Delete No Action Data
       delete updateUserDto.password;
-      if(updateUserDto['isVerfied'] && updateUserDto['verifiedStatus'] === VerifiedStatus.Verified){
-        const product = await this.productModel.findOneAndUpdate({['user._id']:id, publishDate: {$gte: new Date(
-          new Date().getFullYear(),
-          new Date().getMonth() - 1,
-          new Date().getDate(),
-        )}}, {
-          $set: {'user.isVerfied': true}
+      if (updateUserDto['isVerfied'] && updateUserDto['verifiedStatus'] === VerifiedStatus.Verified) {
+        const product = await this.productModel.updateMany({ ['user._id']: id }, {
+          $set: { 'user.isVerfied': true }
         })
       }
       await this.userModel.findByIdAndUpdate(id, {
