@@ -37,6 +37,7 @@ import { EmailService } from '../../shared/email/email.service';
 import { UtilsService } from '../../shared/utils/utils.service';
 import { OtpService } from '../otp/otp.service';
 import { Product } from 'src/interfaces/common/product.interface';
+import { VerifiedStatus } from 'src/enum/verified-status.enum';
 
 const ObjectId = Types.ObjectId;
 
@@ -733,7 +734,7 @@ export class UserService {
       }
       // Delete No Action Data
       delete updateUserDto.password;
-      if(updateUserDto['isVerfied'] && updateUserDto['verifiedStatus'] === 2){
+      if(updateUserDto['isVerfied'] && updateUserDto['verifiedStatus'] === VerifiedStatus.Verified){
         const product = await this.productModel.findOneAndUpdate({['user._id']:id, publishDate: {$gte: new Date(
           new Date().getFullYear(),
           new Date().getMonth() - 1,
