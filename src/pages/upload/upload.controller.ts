@@ -24,6 +24,7 @@ import { editFileName, getUploadPath, imageFileFilter } from './file-upload.util
 import { UploadService } from './upload.service';
 import { ImageUploadResponse, ResponsePayload } from '../../interfaces/core/response-payload.interface';
 
+const watermarkPath = 'upload/watermark/myescortdk.png'
 @Controller('upload')
 export class UploadController {
   private logger = new Logger(UploadController.name);
@@ -141,7 +142,7 @@ export class UploadController {
     const response: ImageUploadResponse[] = [];
     for (const file of files) {
       try {
-        const watermarkPath = await this.uploadService.addWatermark(file.path, 'upload/watermark/myescortdk.png', file.path.replace('original', 'images'));
+        const watermarkResult = await this.uploadService.addWatermark(file.path, watermarkPath, file.path.replace('original', 'images'));
         const fileResponse = {
           size: this.uploadService.bytesToKb(file.size),
           name: file.filename.split('.')[0],
@@ -195,7 +196,7 @@ export class UploadController {
 
         // Delete Images
         fs.unlinkSync('./' + file.path);
-        const watermarkPath = await this.uploadService.addWatermark(file.path, 'upload/watermark/myescortdk.png', file.path.replace('original', 'images'));
+        const watermarkResult = await this.uploadService.addWatermark(file.path, watermarkPath, file.path.replace('original', 'images'));
         const fileResponse = {
           size: this.uploadService.bytesToKb(conImage.size),
           name: file.filename.split('.')[0],
@@ -209,7 +210,7 @@ export class UploadController {
       const response: ImageUploadResponse[] = [];
       for (const file of files) {
         try {
-          const watermarkPath = await this.uploadService.addWatermark(file.path, 'upload/watermark/myescortdk.png', file.path.replace('original', 'images'));
+          const watermarkResult = await this.uploadService.addWatermark(file.path, watermarkPath, file.path.replace('original', 'images'));
           const fileResponse = {
             size: this.uploadService.bytesToKb(file.size),
             name: file.filename.split('.')[0],
