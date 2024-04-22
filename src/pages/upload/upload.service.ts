@@ -4,6 +4,9 @@ import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common
 
 import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 import * as sharp from 'sharp';
+const waterMarkWidth = 150;
+const waterMarkHeight = 26;
+const watermarkDivision = 2;
 
 @Injectable()
 export class UploadService {
@@ -66,8 +69,8 @@ export class UploadService {
         .resize(200) // Resize watermark to desired size
         .toBuffer();
       // Calculate the center coordinates
-      const centerX = Math.floor((imageMetadata.width - 26) / 2);
-      const centerY = Math.floor((imageMetadata.height - 150) / 2);
+      const centerX = Math.floor((imageMetadata.width - waterMarkHeight) / watermarkDivision);
+      const centerY = Math.floor((imageMetadata.height - waterMarkWidth) / watermarkDivision);
       await image
         .composite([{ input: watermark, blend: 'over', top: centerX, left: centerY }]) // Position the watermark
         .toFile(outputPath); // Save the output file

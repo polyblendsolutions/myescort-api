@@ -141,7 +141,7 @@ export class UploadController {
     const response: ImageUploadResponse[] = [];
     for (const file of files) {
       try {
-        const result = await this.uploadService.addWatermark(file.path, 'upload/watermark/myescortdk.png', file.path.replace('original', 'images'));
+        const watermarkPath = await this.uploadService.addWatermark(file.path, 'upload/watermark/myescortdk.png', file.path.replace('original', 'images'));
         const fileResponse = {
           size: this.uploadService.bytesToKb(file.size),
           name: file.filename.split('.')[0],
@@ -195,7 +195,7 @@ export class UploadController {
 
         // Delete Images
         fs.unlinkSync('./' + file.path);
-        const result = await this.uploadService.addWatermark(file.path, 'upload/watermark/myescortdk.png', file.path.replace('original', 'images'));
+        const watermarkPath = await this.uploadService.addWatermark(file.path, 'upload/watermark/myescortdk.png', file.path.replace('original', 'images'));
         const fileResponse = {
           size: this.uploadService.bytesToKb(conImage.size),
           name: file.filename.split('.')[0],
@@ -209,7 +209,7 @@ export class UploadController {
       const response: ImageUploadResponse[] = [];
       for (const file of files) {
         try {
-          const result = await this.uploadService.addWatermark(file.path, 'upload/watermark/myescortdk.png', file.path.replace('original', 'images'));
+          const watermarkPath = await this.uploadService.addWatermark(file.path, 'upload/watermark/myescortdk.png', file.path.replace('original', 'images'));
           const fileResponse = {
             size: this.uploadService.bytesToKb(file.size),
             name: file.filename.split('.')[0],
