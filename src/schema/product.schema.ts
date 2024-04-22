@@ -10,6 +10,14 @@ export const ProductSchema = new mongoose.Schema(
       required: false,
       trim: false,
     },
+    isVipStatusActive: {
+      type: Boolean,
+      default: false,
+    },
+    vipStatusActivatedOn: {
+      type: Number,
+      default: Date.now(),
+    },
     slug: {
       type: String,
       required: false,

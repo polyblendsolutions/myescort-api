@@ -38,6 +38,7 @@ import { EmailService } from '../../shared/email/email.service';
 import { UtilsService } from '../../shared/utils/utils.service';
 import { OtpService } from '../otp/otp.service';
 import { Subscription } from 'src/interfaces/common/subscription.interface';
+import { Product } from 'src/interfaces/common/product.interface';
 
 const ObjectId = Types.ObjectId;
 
@@ -51,6 +52,7 @@ export class UserService {
   constructor(
     @InjectModel('User') private readonly userModel: Model<User>,
     @InjectModel('Subscriptions') private readonly subscriptionModel: Model<Subscription>,
+    @InjectModel('Products') private readonly productModel: Model<Product>,
     protected jwtService: JwtService,
     private configService: ConfigService,
     private utilsService: UtilsService,
@@ -807,13 +809,10 @@ export class UserService {
     }
   }
 
-  async activateVipAndCreatePayment(
-    id: string,
-    data: UpdateUserSubscriptionPlanDto,
-  ): Promise<ResponsePayload> {
+  async activateVipAndCreatePayment(id: string, data: UpdateUserSubscriptionPlanDto): Promise<ResponsePayload> {
     const { subscriptionId } = data;
     let user, subscription;
-    
+
     //check if user exists
     try {
       user = await this.userModel.findById(id);
@@ -834,9 +833,26 @@ export class UserService {
       throw new NotFoundException('No subscription found!');
     }
     try {
-      await this.userModel.findByIdAndUpdate(id, {
-        $set: { subscriptionId, isVipStatusActive: true },
-      });
+      await this.userModel.findByIdAndUpdate(
+        id,
+        {
+          $set: { subscriptionId },
+        },
+        { new: true },
+      );
+      const latestPublishedProduct = await this.productModel
+        .findOne({ 'user._id': id }, { status: 'publish' })
+        .lean(true)
+        .sort({ createdAt: -1 });
+      if (latestPublishedProduct) {
+        await this.productModel.findOneAndUpdate(
+          { _id: latestPublishedProduct._id },
+          {
+            $set: { isVipStatusActive: true, vipStatusActivatedOn: Date.now() },
+          },
+          { new: true },
+        );
+      }
       return {
         success: true,
         message: 'Success',

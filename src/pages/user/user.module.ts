@@ -13,6 +13,7 @@ import { PromoOfferSchema } from '../../schema/promo-offer.schema';
 import { UserSchema } from '../../schema/user.schema';
 import { OtpService } from '../otp/otp.service';
 import { SubscriptionsSchema } from 'src/schema/subscriptions.schema';
+import { ProductSchema } from 'src/schema/product.schema';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { SubscriptionsSchema } from 'src/schema/subscriptions.schema';
       { name: 'PromoOffer', schema: PromoOfferSchema },
       { name: 'Otp', schema: OtpSchema },
       { name: 'Subscriptions', schema: SubscriptionsSchema },
+      { name: 'Products', schema: ProductSchema },
     ]),
   ],
   controllers: [UserController],
