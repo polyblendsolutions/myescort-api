@@ -28,7 +28,7 @@ import { ImageUploadResponse, ResponsePayload } from '../../interfaces/core/resp
 export class UploadController {
   private logger = new Logger(UploadController.name);
 
-  constructor(private configService: ConfigService, private uploadService: UploadService) {}
+  constructor(private configService: ConfigService, private uploadService: UploadService) { }
 
   /**
    * SINGLE IMAGE
@@ -139,14 +139,21 @@ export class UploadController {
     const isProduction = this.configService.get<boolean>('productionBuild');
     const baseurl = req.protocol + `${isProduction ? 's' : ''}://` + req.get('host') + '/api';
     const response: ImageUploadResponse[] = [];
-    files.forEach((file) => {
-      const fileResponse = {
-        size: this.uploadService.bytesToKb(file.size),
-        name: file.filename.split('.')[0],
-        url: `${baseurl}/${file.path}`,
-      } as ImageUploadResponse;
-      response.push(fileResponse);
-    });
+    for (const file of files) {
+      try {
+        const result = await this.uploadService.addWatermark(file.path, 'upload/watermark/myescortdk.png', file.path.replace('original', 'images'));
+        const fileResponse = {
+          size: this.uploadService.bytesToKb(file.size),
+          name: file.filename.split('.')[0],
+          url: `${baseurl}/${file.path.replace('original', 'images')}`,
+        } as ImageUploadResponse;
+        
+        response.push(fileResponse);
+      } catch (error) {
+        console.error('Error processing file:', error);
+        // Handle error as needed
+      }
+    }
     return response;
   }
 
@@ -181,7 +188,6 @@ export class UploadController {
         const filename = path.parse(file.filename).name;
         const newFilename = filename + '.webp';
         const newPath = `${dir}/${newFilename}`;
-
         const conImage = await sharp(file.path)
           .resize(width, height)
           .webp({ effort: 4, quality: quality })
@@ -189,11 +195,11 @@ export class UploadController {
 
         // Delete Images
         fs.unlinkSync('./' + file.path);
-
+        const result = await this.uploadService.addWatermark(file.path, 'upload/watermark/myescortdk.png', file.path.replace('original', 'images'));
         const fileResponse = {
           size: this.uploadService.bytesToKb(conImage.size),
           name: file.filename.split('.')[0],
-          url: `${baseurl}/${newPath}`,
+          url: `${baseurl}/${newPath.replace('original', 'images')}`,
         } as ImageUploadResponse;
         response.push(fileResponse);
       }
@@ -201,14 +207,21 @@ export class UploadController {
       return response;
     } else {
       const response: ImageUploadResponse[] = [];
-      files.forEach((file) => {
-        const fileResponse = {
-          size: this.uploadService.bytesToKb(file.size),
-          name: file.filename.split('.')[0],
-          url: `${baseurl}/${file.path}`,
-        } as ImageUploadResponse;
-        response.push(fileResponse);
-      });
+      for (const file of files) {
+        try {
+          const result = await this.uploadService.addWatermark(file.path, 'upload/watermark/myescortdk.png', file.path.replace('original', 'images'));
+          const fileResponse = {
+            size: this.uploadService.bytesToKb(file.size),
+            name: file.filename.split('.')[0],
+            url: `${baseurl}/${file.path.replace('original', 'images')}`,
+          } as ImageUploadResponse;
+          
+          response.push(fileResponse);
+        } catch (error) {
+          console.error('Error processing file:', error);
+          // Handle error as needed
+        }
+      }
       return response;
     }
   }

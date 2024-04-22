@@ -22,7 +22,7 @@ export const getUploadPath = (req, file, callback) => {
   // Destination Folder Dynamic..
   // const { folderPath } = req.body;
   // const dir = `./upload/images/${folderPath ? folderPath : 'others'}`;
-  const dir = `./upload/images`;
+  const dir = `./upload/original`;
 
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
