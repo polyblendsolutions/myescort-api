@@ -5,15 +5,15 @@ export const SubscriptionsSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: false,
+      required: true,
     },
     days: {
-      type: String,
-      required: false,
+      type: Number,
+      required: true,
     },
     price: {
-      type: String,
-      required: false,
+      type: Number,
+      required: true,
     }
   },
   {

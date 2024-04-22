@@ -522,6 +522,7 @@ export class UserService {
       if (!select) {
         select = '-password';
       }
+      //TODO: populate recent product id wrt user
       const data = await this.userModel.findById(id).select(select);
       return {
         success: true,
@@ -836,34 +837,6 @@ export class UserService {
       await this.userModel.findByIdAndUpdate(id, {
         $set: { subscriptionId, isVipStatusActive: true },
       });
-      return {
-        success: true,
-        message: 'Success',
-      } as ResponsePayload;
-    } catch (err) {
-      throw new InternalServerErrorException();
-    }
-  }
-
-  async getSubscriptions(): Promise<ResponsePayload> {
-    try {
-      const subscriptions = await this.subscriptionModel.find().sort({ days: 1 });
-      return {
-        success: true,
-        message: 'Success',
-        data: subscriptions
-      } as ResponsePayload;
-    } catch (err) {
-      throw new InternalServerErrorException();
-    }
-  }
-
-  async createSubscription(
-    data: any,
-  ): Promise<ResponsePayload> {
-    try {
-      const subscriptionData = await this.subscriptionModel.create(data);
-      subscriptionData
       return {
         success: true,
         message: 'Success',

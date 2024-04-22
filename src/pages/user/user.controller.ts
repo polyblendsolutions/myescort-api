@@ -260,22 +260,6 @@ export class UserController {
     return await this.usersService.activateVipAndCreatePayment(id, data);
   }
 
-  @Version(VERSION_NEUTRAL)
-  @Post('/create-subscription')
-  @UsePipes(ValidationPipe)
-  async createSubscription(
-    @Body() data: any,
-  ): Promise<ResponsePayload> {
-    return await this.usersService.createSubscription(data);
-  }
-
-  @Version(VERSION_NEUTRAL)
-  @Post('/subscriptions')
-  async getSubscriptions(
-  ): Promise<ResponsePayload> {
-    return await this.usersService.getSubscriptions();
-  }
-
   // @Version(VERSION_NEUTRAL)
   // @Post('/delete-multiple-data-by-id')
   // @UsePipes(ValidationPipe)
