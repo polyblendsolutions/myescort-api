@@ -10,6 +10,11 @@ export const ProductSchema = new mongoose.Schema(
       required: false,
       trim: false,
     },
+    productId: {
+      type: String,
+      required: false,
+      trim: false,
+    },
     slug: {
       type: String,
       required: false,
