@@ -39,6 +39,7 @@ import { UtilsService } from '../../shared/utils/utils.service';
 import { OtpService } from '../otp/otp.service';
 import { Subscription } from 'src/interfaces/common/subscription.interface';
 import { Product } from 'src/interfaces/common/product.interface';
+import { VerifiedStatus } from 'src/enum/verified-status.enum';
 
 const ObjectId = Types.ObjectId;
 
@@ -59,7 +60,7 @@ export class UserService {
     private emailService: EmailService,
     private otpService: OtpService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  ) { }
 
   /**
    * User Signup
@@ -737,6 +738,11 @@ export class UserService {
       }
       // Delete No Action Data
       delete updateUserDto.password;
+      if (updateUserDto['isVerfied'] && updateUserDto['verifiedStatus'] === VerifiedStatus.Verified) {
+        const product = await this.productModel.updateMany({ ['user._id']: id }, {
+          $set: { 'user.isVerfied': true }
+        })
+      }
       await this.userModel.findByIdAndUpdate(id, {
         $set: updateUserDto,
       });
