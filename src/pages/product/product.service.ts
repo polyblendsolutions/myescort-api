@@ -66,6 +66,14 @@ export class ProductService {
         _id: saveData._id,
       };
 
+      const productId = this.utilsService.generateUniqueId(saveData._id.toString());
+      const updateData = await this.productModel.findOneAndUpdate({ _id: saveData._id }, { productId }, { new: true });
+      if(!updateData) {
+        return {
+          success: false,
+          message: "Not able to upload!",
+        } as ResponsePayload;
+      }
       // Cache Removed
       await this.cacheManager.del(this.cacheProductPage);
       await this.cacheManager.del(this.cacheProductCount);
