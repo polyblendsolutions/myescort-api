@@ -1,6 +1,5 @@
 import * as mongoose from 'mongoose';
 import { Schema } from 'mongoose';
-
 import { PRISING_MODULES_SUB_SCHEMA } from './sub-schema.schema';
 
 export const ProductSchema = new mongoose.Schema(
@@ -17,6 +16,11 @@ export const ProductSchema = new mongoose.Schema(
     vipStatusActivatedOn: {
       type: Number,
       default: Date.now(),
+    },
+    productId: {
+      type: String,
+      required: false,
+      trim: false,
     },
     slug: {
       type: String,
