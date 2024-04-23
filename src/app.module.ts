@@ -50,6 +50,7 @@ import { DbToolsModule } from './shared/db-tools/db-tools.module';
 import { EmailModule } from './shared/email/email.module';
 import { JobSchedulerModule } from './shared/job-scheduler/job-scheduler.module';
 import { UtilsModule } from './shared/utils/utils.module';
+import { SubscriptionModule } from './pages/subscriptions/subscription.module';
 
 @Module({
   imports: [
@@ -104,6 +105,7 @@ import { UtilsModule } from './shared/utils/utils.module';
     EmailModule,
     OtpModule,
     ReportModule,
+    SubscriptionModule
   ],
   controllers: [AppController],
   providers: [AppService],
