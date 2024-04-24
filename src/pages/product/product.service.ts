@@ -102,7 +102,7 @@ export class ProductService {
       if (fData) {
         return {
           success: false,
-          message: 'Sorry,Only 1 Data can be save',
+          message: 'Fejl, kun en annonce er tilladt',
         } as ResponsePayload;
       } else {
         const { name, quantity } = addProductDto;
