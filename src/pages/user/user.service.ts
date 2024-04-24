@@ -28,6 +28,7 @@ import {
   ResetPasswordDto,
   UpdateUserDto,
   UserSelectFieldDto,
+  UpdateUserSubscriptionPlanDto,
 } from '../../dto/user.dto';
 import { ErrorCodes } from '../../enum/error-code.enum';
 import { AdminAuthResponse } from '../../interfaces/admin/admin.interface';
@@ -36,6 +37,9 @@ import { User, UserAuthResponse, UserJwtPayload } from '../../interfaces/user/us
 import { EmailService } from '../../shared/email/email.service';
 import { UtilsService } from '../../shared/utils/utils.service';
 import { OtpService } from '../otp/otp.service';
+import { Subscription } from 'src/interfaces/common/subscription.interface';
+import { Product } from 'src/interfaces/common/product.interface';
+import { VerifiedStatus } from 'src/enum/verified-status.enum';
 
 const ObjectId = Types.ObjectId;
 
@@ -48,13 +52,15 @@ export class UserService {
 
   constructor(
     @InjectModel('User') private readonly userModel: Model<User>,
+    @InjectModel('Subscriptions') private readonly subscriptionModel: Model<Subscription>,
+    @InjectModel('Products') private readonly productModel: Model<Product>,
     protected jwtService: JwtService,
     private configService: ConfigService,
     private utilsService: UtilsService,
     private emailService: EmailService,
     private otpService: OtpService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  ) { }
 
   /**
    * User Signup
@@ -302,20 +308,20 @@ export class UserService {
         // });
         return {
           success: true,
-          message: 'Success! Otp has been sent to your phone number.',
+          message: 'Success! Otp has been sent to your email.',
           data: { username: userData.username, otp: true },
         } as ResponsePayload;
       } else {
         return {
           success: false,
-          message: 'User not exists. Please check your phone number',
+          message: 'User not exists. Please check your email',
           data: { otp: false },
         } as ResponsePayload;
       }
     } catch (error) {
       console.log(error);
       if (error.code && error.code.toString() === ErrorCodes.UNIQUE_FIELD) {
-        throw new ConflictException('Phone Number is already exists');
+        throw new ConflictException('Email is already exists');
       } else {
         throw new InternalServerErrorException();
       }
@@ -519,6 +525,7 @@ export class UserService {
       if (!select) {
         select = '-password';
       }
+      //TODO: populate recent product id wrt user
       const data = await this.userModel.findById(id).select(select);
       return {
         success: true,
@@ -734,7 +741,7 @@ export class UserService {
       }
 
       //check isVerified  
-        if(isVerfied || (!isVerfied && comment)) {
+        if(isVerfied|| comment) {
         await this.emailService.sendEmail(
           user['email'],
           `
@@ -745,6 +752,11 @@ export class UserService {
       }
       // Delete No Action Data
       delete updateUserDto.password;
+      if (updateUserDto['isVerfied'] && updateUserDto['verifiedStatus'] === VerifiedStatus.Verified) {
+        const product = await this.productModel.updateMany({ ['user._id']: id }, {
+          $set: { 'user.isVerfied': true }
+        })
+      }
       await this.userModel.findByIdAndUpdate(id, {
         $set: updateUserDto,
       });
@@ -814,6 +826,59 @@ export class UserService {
       } as ResponsePayload;
     } catch (err) {
       throw new InternalServerErrorException(err.message);
+    }
+  }
+
+  async activateVipAndCreatePayment(id: string, data: UpdateUserSubscriptionPlanDto): Promise<ResponsePayload> {
+    const { subscriptionId } = data;
+    let user, subscription;
+
+    //check if user exists
+    try {
+      user = await this.userModel.findById(id);
+    } catch (err) {
+      throw new InternalServerErrorException();
+    }
+    if (!user) {
+      throw new NotFoundException('No User found!');
+    }
+
+    //check if subscription exists
+    try {
+      subscription = await this.subscriptionModel.findOne({ _id: subscriptionId }).lean(true);
+    } catch (err) {
+      throw new InternalServerErrorException();
+    }
+    if (!subscription) {
+      throw new NotFoundException('No subscription found!');
+    }
+    try {
+      await this.userModel.findByIdAndUpdate(
+        id,
+        {
+          $set: { subscriptionId },
+        },
+        { new: true },
+      );
+      const latestPublishedProduct = await this.productModel
+        .findOne({ 'user._id': id }, { status: 'publish' })
+        .lean(true)
+        .sort({ createdAt: -1 });
+      if (latestPublishedProduct) {
+        await this.productModel.findOneAndUpdate(
+          { _id: latestPublishedProduct._id },
+          {
+            $set: { isVipStatusActive: true, vipStatusActivatedOn: Date.now() },
+          },
+          { new: true },
+        );
+      }
+      return {
+        success: true,
+        message: 'Success',
+      } as ResponsePayload;
+    } catch (err) {
+      throw new InternalServerErrorException();
     }
   }
 }

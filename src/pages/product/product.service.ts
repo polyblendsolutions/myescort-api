@@ -41,7 +41,7 @@ export class ProductService {
     private configService: ConfigService,
     private utilsService: UtilsService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  ) { }
 
   /**
    * addProduct
@@ -66,6 +66,11 @@ export class ProductService {
         _id: saveData._id,
       };
 
+      const productId = this.utilsService.generateUniqueId(saveData._id.toString());
+      const updateData = await this.productModel.findOneAndUpdate({ _id: saveData._id }, { productId }, { new: true });
+      if(!updateData) {
+        this.logger.error("Not able to upload!");
+      }
       // Cache Removed
       await this.cacheManager.del(this.cacheProductPage);
       await this.cacheManager.del(this.cacheProductCount);
@@ -233,7 +238,7 @@ export class ProductService {
     const { sort } = filterProductDto;
     const { select } = filterProductDto;
     const { filterGroup } = filterProductDto;
-
+    let showExpired = false;
     // if (
     //   pagination.currentPage < 1 &&
     //   filter == null &&
@@ -291,6 +296,11 @@ export class ProductService {
 
       if (filter && filter['tags._id']) {
         filter['tags._id'] = new ObjectId(filter['tags._id']);
+      }
+
+      if (filter && filter['showExpired']) {
+        showExpired = filter['showExpired'];
+        delete filter['showExpired'];
       }
 
       if (filter && filter['createdAt']) {
@@ -487,12 +497,14 @@ export class ProductService {
     }
 
     try {
-      aggregateStages[0]['$match']['publishDate'] = {};
-      aggregateStages[0]['$match']['publishDate']['$gte'] = new Date(
-        new Date().getFullYear(),
-        new Date().getMonth() - 1,
-        new Date().getDate(),
-      );
+      if (!showExpired) {
+        aggregateStages[0]['$match']['publishDate'] = {};
+        aggregateStages[0]['$match']['publishDate']['$gte'] = new Date(
+          new Date().getFullYear(),
+          new Date().getMonth() - 1,
+          new Date().getDate(),
+        );
+      }
       // Main
       const dataAggregates = await this.productModel.aggregate(aggregateStages);
 
@@ -538,6 +550,338 @@ export class ProductService {
         if (pagination.currentPage < 1 && filter == null && JSON.stringify(sort) == JSON.stringify({ createdAt: -1 })) {
           await this.cacheManager.set(this.cacheProductPage, dataAggregates[0].data);
           await this.cacheManager.set(this.cacheProductCount, dataAggregates[0].count);
+          this.logger.log('Cache Added');
+        }
+
+        return {
+          ...{ ...dataAggregates[0] },
+          ...{
+            success: true,
+            message: 'Success',
+            filterGroup: allFilterGroups,
+          },
+        } as ResponsePayload;
+      } else {
+        return {
+          data: dataAggregates,
+          success: true,
+          message: 'Success',
+          count: dataAggregates.length,
+          filterGroup: allFilterGroups,
+        } as ResponsePayload;
+      }
+    } catch (err) {
+      console.log('errr>>>>', err);
+      this.logger.error(err);
+      if (err.code && err.code.toString() === ErrorCodes.PROJECTION_MISMATCH) {
+        throw new BadRequestException('Error! Projection mismatch');
+      } else {
+        throw new InternalServerErrorException();
+      }
+    }
+  }
+
+  async getAllAdminProducts(
+    filterProductDto: FilterAndPaginationProductDto,
+    searchQuery?: string,
+  ): Promise<ResponsePayload> {
+    const { filter } = filterProductDto;
+    const { pagination } = filterProductDto;
+    const { sort } = filterProductDto;
+    const { select } = filterProductDto;
+    const { filterGroup } = filterProductDto;
+
+    // Aggregate Stages
+    const aggregateStages = [];
+    const aggregateCategoryGroupStages = [];
+    const aggregateBrandGroupStages = [];
+    const aggregatePublisherGroupStages = [];
+    const aggregateSubCategoryGroupStages = [];
+
+    // Essential Variables
+    let mFilter = {};
+    let mSort = {};
+    let mSelect = {};
+    let mPagination = {};
+    // Modify Id as Object ID
+    // Match
+    if (filter) {
+      const keysToConvert = ['user._id', 'category._id', 'subCategory._id', 'brand._id', 'publisher._id', 'tags._id'];
+
+      // Convert specified keys to ObjectId
+      keysToConvert.forEach(key => {
+        if (filter && filter[key]) {
+          filter[key] = new ObjectId(filter[key]);
+        }
+      });
+
+      if (filter && filter['createdAt']) {
+        filter['createdAt']['$gte'] = new Date(filter['createdAt']['$gte']);
+        filter['createdAt']['$lte'] = new Date(filter['createdAt']['$lte']);
+      }
+
+      mFilter = { ...mFilter, ...filter };
+    }
+
+    if (searchQuery) {
+      mFilter = {
+        $and: [
+          mFilter,
+          {
+            $or: [
+              { name: new RegExp(searchQuery, 'i') },
+              { email: new RegExp(searchQuery, 'i') },
+              { slug: new RegExp(searchQuery, 'i') },
+              { 'category.name': new RegExp(searchQuery, 'i') },
+              { 'type.name': new RegExp(searchQuery, 'i') },
+              { 'division.name': new RegExp(searchQuery, 'i') },
+              { 'zone.name': new RegExp(searchQuery, 'i') },
+              { 'area.name': new RegExp(searchQuery, 'i') },
+              { 'age': new RegExp(searchQuery, 'i') },
+              { 'height': new RegExp(searchQuery, 'i') },
+              { 'weight': new RegExp(searchQuery, 'i') },
+              { 'bodyType.name': new RegExp(searchQuery, 'i') },
+              { 'shortDescription': new RegExp(searchQuery, 'i') },
+              { 'address': new RegExp(searchQuery, 'i') },
+              { 'hairColor.name': new RegExp(searchQuery, 'i') },
+              { 'orientation.name': new RegExp(searchQuery, 'i') },
+              { 'intimateHair.name': new RegExp(searchQuery, 'i') },
+              { 'phone': new RegExp(searchQuery, 'i') },
+              { 'whatsApp': new RegExp(searchQuery, 'i') },
+            ],
+          },
+        ],
+      };
+      // mFilter = { ...mFilter, ...{ name: new RegExp(searchQuery, 'i') } };
+    }
+    // Sort
+    if (sort) {
+      mSort = sort;
+    } else {
+      mSort = { createdAt: -1 };
+    }
+    // Select
+    if (select) {
+      mSelect = { ...select, publishDate: 1 };
+    } else {
+      mSelect = { name: 1 };
+    }
+
+    // GROUPING FOR FILTER PRODUCTS
+    let groupCategory;
+    let groupBrand;
+    let groupSubCategory;
+    let groupPublisher;
+
+    if (filterGroup && filterGroup.isGroup) {
+      if (filterGroup.category) {
+        groupCategory = {
+          $group: {
+            _id: { category: '$category._id' },
+            name: { $first: '$category.name' },
+            slug: { $first: '$category.slug' },
+            total: { $sum: 1 },
+          },
+        };
+      }
+
+      if (filterGroup.brand) {
+        groupBrand = {
+          $group: {
+            _id: { brand: '$brand._id' },
+            name: { $first: '$brand.name' },
+            slug: { $first: '$brand.slug' },
+            total: { $sum: 1 },
+          },
+        };
+      }
+
+      if (filterGroup.subCategory) {
+        groupSubCategory = {
+          $group: {
+            _id: { subCategory: '$subCategory._id' },
+            name: { $first: '$subCategory.name' },
+            slug: { $first: '$subCategory.slug' },
+            total: { $sum: 1 },
+          },
+        };
+      }
+
+      if (filterGroup.publisher) {
+        groupPublisher = {
+          $group: {
+            _id: { publisher: '$publisher._id' },
+            name: { $first: '$publisher.name' },
+            slug: { $first: '$publisher.slug' },
+            total: { $sum: 1 },
+          },
+        };
+      }
+    }
+
+    // Finalize
+    if (Object.keys(mFilter).length) {
+      // Main
+      aggregateStages.push({ $match: mFilter });
+
+      // Category Groups
+      if (groupCategory) {
+        // aggregateCategoryGroupStages.push({ $match: mFilter });
+        aggregateCategoryGroupStages.push(groupCategory);
+      }
+
+      // Sub Category Groups
+      if (groupSubCategory) {
+        // aggregateSubCategoryGroupStages.push({ $match: mFilter });
+        aggregateSubCategoryGroupStages.push(groupSubCategory);
+      }
+
+      // Brand Groups
+      if (groupBrand) {
+        // aggregateBrandGroupStages.push({ $match: mFilter });
+        aggregateBrandGroupStages.push(groupBrand);
+      }
+      // Publisher Groups
+      if (groupPublisher) {
+        // aggregatePublisherGroupStages.push({ $match: mFilter });
+        aggregatePublisherGroupStages.push(groupPublisher);
+      }
+    } else {
+      if (groupCategory) {
+        aggregateCategoryGroupStages.push(groupCategory);
+      }
+      if (groupSubCategory) {
+        aggregateSubCategoryGroupStages.push(groupSubCategory);
+      }
+      if (groupBrand) {
+        aggregateBrandGroupStages.push(groupBrand);
+      }
+      if (groupPublisher) {
+        aggregatePublisherGroupStages.push(groupPublisher);
+      }
+    }
+
+    if (Object.keys(mSort).length) {
+      aggregateStages.push({ $sort: mSort });
+    }
+
+    if (!pagination) {
+      aggregateStages.push({ $project: mSelect });
+    }
+
+    // Pagination
+    if (pagination) {
+      if (Object.keys(mSelect).length) {
+        mPagination = {
+          $facet: {
+            metadata: [{ $count: 'total' }],
+            data: [
+              {
+                $skip: pagination.pageSize * pagination.currentPage,
+              } /* IF PAGE START FROM 0 OR (pagination.currentPage - 1) IF PAGE 1*/,
+              { $limit: pagination.pageSize },
+              { $project: mSelect },
+            ],
+          },
+        };
+      } else {
+        mPagination = {
+          $facet: {
+            metadata: [{ $count: 'total' }],
+            data: [
+              {
+                $skip: pagination.pageSize * pagination.currentPage,
+              } /* IF PAGE START FROM 0 OR (pagination.currentPage - 1) IF PAGE 1*/,
+              { $limit: pagination.pageSize },
+            ],
+          },
+        };
+      }
+
+      aggregateStages.push(mPagination);
+
+      aggregateStages.push({
+        $project: {
+          data: 1,
+          count: { $arrayElemAt: ['$metadata.total', 0] },
+        },
+      });
+    }
+
+    try {
+      // Main
+      const dataAggregates = await this.productModel.aggregate(aggregateStages);
+
+      // GROUP FILTER PRODUCTS DATA
+      let categoryAggregates;
+      let subCategoryAggregates;
+      let brandAggregates;
+      let publisherAggregates;
+      // Category
+      if (filterGroup && filterGroup.isGroup && filterGroup.category) {
+        categoryAggregates = await this.productModel.aggregate(
+          aggregateCategoryGroupStages,
+        );
+      }
+
+      // Sub Category
+      if (filterGroup && filterGroup.isGroup && filterGroup.subCategory) {
+        subCategoryAggregates = await this.productModel.aggregate(
+          aggregateSubCategoryGroupStages,
+        );
+      }
+
+      // Brand
+      if (filterGroup && filterGroup.isGroup && filterGroup.brand) {
+        brandAggregates = await this.productModel.aggregate(
+          aggregateBrandGroupStages,
+        );
+      }
+
+      // Publisher
+      if (filterGroup && filterGroup.isGroup && filterGroup.publisher) {
+        publisherAggregates = await this.productModel.aggregate(
+          aggregatePublisherGroupStages,
+        );
+      }
+
+      // Main Filter Data
+      let allFilterGroups;
+      if (filterGroup && filterGroup.isGroup) {
+        allFilterGroups = {
+          categories:
+            categoryAggregates && categoryAggregates.length
+              ? categoryAggregates
+              : [],
+          subCategories:
+            subCategoryAggregates && subCategoryAggregates.length
+              ? subCategoryAggregates
+              : [],
+          brands:
+            brandAggregates && brandAggregates.length ? brandAggregates : [],
+          publishers:
+            publisherAggregates && publisherAggregates.length
+              ? publisherAggregates
+              : [],
+        };
+      } else {
+        allFilterGroups = null;
+      }
+
+      if (pagination) {
+        if (
+          pagination.currentPage < 1 &&
+          filter == null &&
+          JSON.stringify(sort) == JSON.stringify({ createdAt: -1 })
+        ) {
+          await this.cacheManager.set(
+            this.cacheProductPage,
+            dataAggregates[0].data,
+          );
+          await this.cacheManager.set(
+            this.cacheProductCount,
+            dataAggregates[0].count,
+          );
           this.logger.log('Cache Added');
         }
 
