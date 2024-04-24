@@ -66,14 +66,13 @@ export class UploadService {
       const image = sharp(imagePath);
       const imageMetadata = await image.metadata();
       const watermark = await sharp(watermarkPath)
-        .resize(200) // Resize watermark to desired size
+      .resize(imageMetadata.width, null, { fit: 'contain' })
         .toBuffer();
       // Calculate the center coordinates
-      const centerX = Math.floor((imageMetadata.width - waterMarkHeight) / 2);
-      const centerY = Math.floor((imageMetadata.height - waterMarkWidth) / 2);
       await image
-        .composite([{ input: watermark, blend: 'over', top: centerX, left: centerY }]) // Position the watermark
-        .toFile(outputPath); // Save the output file
+        .composite([{ input: watermark, blend: 'over', top: imageMetadata.height / 2, left: 0 }])
+        .jpeg()
+        .toFile(outputPath);
       return true;
     } catch (error) {
       console.error('Error processing image:', error);
