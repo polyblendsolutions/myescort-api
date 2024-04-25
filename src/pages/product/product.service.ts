@@ -69,7 +69,11 @@ export class ProductService {
       const productId = this.utilsService.generateUniqueId(saveData._id.toString());
       const updateData = await this.productModel.findOneAndUpdate({ _id: saveData._id }, { productId }, { new: true });
       if (!updateData) {
-        this.logger.error('Not able to upload!');
+        this.logger.error('Not able to update!');
+        return {
+          success: false,
+          message: "Not able to update!",
+        } as ResponsePayload;
       }
       // Cache Removed
       await this.cacheManager.del(this.cacheProductPage);
@@ -887,8 +891,12 @@ export class ProductService {
 
   async getProductById(id: string, select: string): Promise<ResponsePayload> {
     try {
-      const data = await this.productModel.findById(id).select(select).populate('tags');
-
+      let data;
+      if(Types.ObjectId.isValid(id)) {
+        data = await this.productModel.findById(id).lean(true).select(select).populate('tags');
+      } else{
+        data = await this.productModel.findOne({ productId: id }).lean(true).select(select).populate('tags');
+      }
       return {
         success: true,
         message: 'Success',

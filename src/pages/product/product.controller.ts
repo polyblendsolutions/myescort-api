@@ -34,7 +34,7 @@ import { AdminRolesGuard } from '../../guards/admin-roles.guard';
 import { UserJwtAuthGuard } from '../../guards/user-jwt-auth.guard';
 import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 import { User } from '../../interfaces/user/user.interface';
-import { MongoIdValidationPipe } from '../../pipes/mongo-id-validation.pipe';
+import { MongoIdOrStringValidationPipe, MongoIdValidationPipe } from '../../pipes/mongo-id-validation.pipe';
 
 @Controller('product')
 export class ProductController {
@@ -164,7 +164,7 @@ export class ProductController {
   @Version(VERSION_NEUTRAL)
   @Get('/:id')
   async getProductById(
-    @Param('id', MongoIdValidationPipe) id: string,
+    @Param('id', MongoIdOrStringValidationPipe) id: string,
     @Query() select: string,
   ): Promise<ResponsePayload> {
     return await this.productService.getProductById(id, select);

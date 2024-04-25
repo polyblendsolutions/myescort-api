@@ -525,8 +525,11 @@ export class UserService {
       if (!select) {
         select = '-password';
       }
-      //TODO: populate recent product id wrt user
-      const data = await this.userModel.findById(id).select(select);
+      const data = await this.userModel.findById(id).lean(true).select(select);
+
+      const product = await this.productModel.findOne({ "user._id": id }).lean(true).select("_id productId");
+      data.productId = product? ( product.productId? product.productId: "" ): "";
+
       return {
         success: true,
         message: 'Success',
