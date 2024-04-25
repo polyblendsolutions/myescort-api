@@ -592,7 +592,7 @@ export class UserService {
     const { password, oldPassword } = changePasswordDto;
     let user;
     try {
-      user = await this.userModel.findById(users._id).select('password');
+      user = await this.userModel.findById(users._id).select('password email name');
     } catch (err) {
       throw new InternalServerErrorException();
     }
@@ -610,6 +610,15 @@ export class UserService {
         await this.userModel.findByIdAndUpdate(users._id, {
           $set: { password: hashedPass },
         });
+
+        await this.emailService.sendEmail(
+          user['email'],
+          `
+            <h5>Password Change</h5>
+            <p>Hi ${user.name}! Your Password is changed successfully.</p>
+          `,
+        );
+
         return {
           success: true,
           message: 'Password changed success',
@@ -741,7 +750,7 @@ export class UserService {
       }
 
       //check isVerified  
-        if(isVerfied|| comment) {
+        if(isVerfied || comment) {
         await this.emailService.sendEmail(
           user['email'],
           `
@@ -835,7 +844,7 @@ export class UserService {
 
     //check if user exists
     try {
-      user = await this.userModel.findById(id);
+      user = await this.userModel.findById(id).select("_id email");
     } catch (err) {
       throw new InternalServerErrorException();
     }
@@ -873,6 +882,15 @@ export class UserService {
           { new: true },
         );
       }
+
+      await this.emailService.sendEmail(
+        user['email'],
+        `
+          <h5>Subscription Bought</h5>
+          <p>Hi ${user.name}!, Your Subscription is active now.</p>
+        `,
+      );
+
       return {
         success: true,
         message: 'Success',

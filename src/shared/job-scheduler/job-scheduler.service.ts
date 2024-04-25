@@ -10,6 +10,8 @@ import { DbToolsService } from '../db-tools/db-tools.service';
 import { UtilsService } from '../utils/utils.service';
 import { ProductSchema } from 'src/schema/product.schema';
 import { Product } from 'src/interfaces/common/product.interface';
+// import * as moment from "moment-timezone";
+import { User } from 'src/interfaces/user/user.interface';
 
 @Injectable()
 export class JobSchedulerService {
@@ -24,6 +26,7 @@ export class JobSchedulerService {
     private utilsService: UtilsService,
     private dbToolsService: DbToolsService,
     @InjectModel('Product') private readonly productModel: Model<Product>,
+    @InjectModel('User') private readonly userModel: Model<User>,
   ) { }
 
   /**
@@ -42,11 +45,20 @@ export class JobSchedulerService {
     });
   }
 
-  async subscriptionExpireNotification() {
-    schedule.scheduleJob('0 12 * * *', async () => {
-      this.findDataBetween12Hours()
-    });
-  }
+  // async subscriptionExpireNotification() {
+  //   schedule.scheduleJob('0 12 * * *', async () => {
+  //     this.expireSubscription()
+  //   });
+  // }
+
+  // async expireSubscription() {
+  //   const users = await this.userModel.find().lean(true);
+  //   if(users.length && users.length > 0) {
+  //     for(let value of users) {
+
+  //     }
+  //   }
+  // }
 
   findDataBetween12Hours() {
     const currentDate = new Date(); // Current date and time
