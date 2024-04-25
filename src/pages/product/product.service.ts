@@ -41,7 +41,7 @@ export class ProductService {
     private configService: ConfigService,
     private utilsService: UtilsService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) { }
+  ) {}
 
   /**
    * addProduct
@@ -66,6 +66,11 @@ export class ProductService {
         _id: saveData._id,
       };
 
+      const productId = this.utilsService.generateUniqueId(saveData._id.toString());
+      const updateData = await this.productModel.findOneAndUpdate({ _id: saveData._id }, { productId }, { new: true });
+      if (!updateData) {
+        this.logger.error('Not able to upload!');
+      }
       // Cache Removed
       await this.cacheManager.del(this.cacheProductPage);
       await this.cacheManager.del(this.cacheProductCount);
@@ -97,7 +102,7 @@ export class ProductService {
       if (fData) {
         return {
           success: false,
-          message: 'Sorry,Only 1 Data can be save',
+          message: 'Fejl, kun en annonce er tilladt',
         } as ResponsePayload;
       } else {
         const { name, quantity } = addProductDto;
@@ -604,7 +609,7 @@ export class ProductService {
       const keysToConvert = ['user._id', 'category._id', 'subCategory._id', 'brand._id', 'publisher._id', 'tags._id'];
 
       // Convert specified keys to ObjectId
-      keysToConvert.forEach(key => {
+      keysToConvert.forEach((key) => {
         if (filter && filter[key]) {
           filter[key] = new ObjectId(filter[key]);
         }
@@ -632,17 +637,17 @@ export class ProductService {
               { 'division.name': new RegExp(searchQuery, 'i') },
               { 'zone.name': new RegExp(searchQuery, 'i') },
               { 'area.name': new RegExp(searchQuery, 'i') },
-              { 'age': new RegExp(searchQuery, 'i') },
-              { 'height': new RegExp(searchQuery, 'i') },
-              { 'weight': new RegExp(searchQuery, 'i') },
+              { age: new RegExp(searchQuery, 'i') },
+              { height: new RegExp(searchQuery, 'i') },
+              { weight: new RegExp(searchQuery, 'i') },
               { 'bodyType.name': new RegExp(searchQuery, 'i') },
-              { 'shortDescription': new RegExp(searchQuery, 'i') },
-              { 'address': new RegExp(searchQuery, 'i') },
+              { shortDescription: new RegExp(searchQuery, 'i') },
+              { address: new RegExp(searchQuery, 'i') },
               { 'hairColor.name': new RegExp(searchQuery, 'i') },
               { 'orientation.name': new RegExp(searchQuery, 'i') },
               { 'intimateHair.name': new RegExp(searchQuery, 'i') },
-              { 'phone': new RegExp(searchQuery, 'i') },
-              { 'whatsApp': new RegExp(searchQuery, 'i') },
+              { phone: new RegExp(searchQuery, 'i') },
+              { whatsApp: new RegExp(searchQuery, 'i') },
             ],
           },
         ],
@@ -814,69 +819,41 @@ export class ProductService {
       let publisherAggregates;
       // Category
       if (filterGroup && filterGroup.isGroup && filterGroup.category) {
-        categoryAggregates = await this.productModel.aggregate(
-          aggregateCategoryGroupStages,
-        );
+        categoryAggregates = await this.productModel.aggregate(aggregateCategoryGroupStages);
       }
 
       // Sub Category
       if (filterGroup && filterGroup.isGroup && filterGroup.subCategory) {
-        subCategoryAggregates = await this.productModel.aggregate(
-          aggregateSubCategoryGroupStages,
-        );
+        subCategoryAggregates = await this.productModel.aggregate(aggregateSubCategoryGroupStages);
       }
 
       // Brand
       if (filterGroup && filterGroup.isGroup && filterGroup.brand) {
-        brandAggregates = await this.productModel.aggregate(
-          aggregateBrandGroupStages,
-        );
+        brandAggregates = await this.productModel.aggregate(aggregateBrandGroupStages);
       }
 
       // Publisher
       if (filterGroup && filterGroup.isGroup && filterGroup.publisher) {
-        publisherAggregates = await this.productModel.aggregate(
-          aggregatePublisherGroupStages,
-        );
+        publisherAggregates = await this.productModel.aggregate(aggregatePublisherGroupStages);
       }
 
       // Main Filter Data
       let allFilterGroups;
       if (filterGroup && filterGroup.isGroup) {
         allFilterGroups = {
-          categories:
-            categoryAggregates && categoryAggregates.length
-              ? categoryAggregates
-              : [],
-          subCategories:
-            subCategoryAggregates && subCategoryAggregates.length
-              ? subCategoryAggregates
-              : [],
-          brands:
-            brandAggregates && brandAggregates.length ? brandAggregates : [],
-          publishers:
-            publisherAggregates && publisherAggregates.length
-              ? publisherAggregates
-              : [],
+          categories: categoryAggregates && categoryAggregates.length ? categoryAggregates : [],
+          subCategories: subCategoryAggregates && subCategoryAggregates.length ? subCategoryAggregates : [],
+          brands: brandAggregates && brandAggregates.length ? brandAggregates : [],
+          publishers: publisherAggregates && publisherAggregates.length ? publisherAggregates : [],
         };
       } else {
         allFilterGroups = null;
       }
 
       if (pagination) {
-        if (
-          pagination.currentPage < 1 &&
-          filter == null &&
-          JSON.stringify(sort) == JSON.stringify({ createdAt: -1 })
-        ) {
-          await this.cacheManager.set(
-            this.cacheProductPage,
-            dataAggregates[0].data,
-          );
-          await this.cacheManager.set(
-            this.cacheProductCount,
-            dataAggregates[0].count,
-          );
+        if (pagination.currentPage < 1 && filter == null && JSON.stringify(sort) == JSON.stringify({ createdAt: -1 })) {
+          await this.cacheManager.set(this.cacheProductPage, dataAggregates[0].data);
+          await this.cacheManager.set(this.cacheProductCount, dataAggregates[0].count);
           this.logger.log('Cache Added');
         }
 

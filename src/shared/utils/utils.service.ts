@@ -156,4 +156,9 @@ export class UtilsService {
     const newDate = moment().tz('Asia/Dhaka').add(time, 'minutes');
     return newDate.toDate();
   }
+
+  generateUniqueId(inputId: string): string {
+    // Combine the prefix(2 initials from the start) and suffix(4 characters from the last) to form the new unique ID
+    return inputId.substring(0, 2) + inputId.substring(inputId.length - 4);
+  }
 }

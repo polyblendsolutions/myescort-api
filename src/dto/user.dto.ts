@@ -256,3 +256,10 @@ export class CheckNewEmailDto {
   @IsString()
   newEmail: string;
 }
+
+export class UpdateUserSubscriptionPlanDto {
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  subscriptionId: string;
+}
