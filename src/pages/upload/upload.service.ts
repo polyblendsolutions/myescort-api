@@ -1,12 +1,9 @@
 import * as fs from 'fs';
 
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
-
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 import * as sharp from 'sharp';
 
-const waterMarkWidth = 150;
-const waterMarkHeight = 26;
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 
 @Injectable()
 export class UploadService {
@@ -65,12 +62,10 @@ export class UploadService {
     try {
       const image = sharp(imagePath);
       const imageMetadata = await image.metadata();
-      const watermark = await sharp(watermarkPath)
-      .resize(imageMetadata.width, null, { fit: 'contain' })
-        .toBuffer();
+      const watermark = await sharp(watermarkPath).resize(imageMetadata.width, null, { fit: 'contain' }).toBuffer();
       // Calculate the center coordinates
       await image
-        .composite([{ input: watermark, blend: 'over', top: imageMetadata.height / 2, left: 0 }])
+        .composite([{ input: watermark, blend: 'over', top: Math.floor(imageMetadata.height / 2), left: 0 }])
         .jpeg()
         .toFile(outputPath);
       return true;
