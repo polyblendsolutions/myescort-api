@@ -162,6 +162,15 @@ export class ProductController {
   }
 
   @Version(VERSION_NEUTRAL)
+  @Get('/short/:id')
+  async getProductByShortId(
+    @Param('id') shortId: string,
+    @Query() select: string,
+  ): Promise<ResponsePayload> {
+    return await this.productService.getProductByShortId(shortId, select);
+  }
+
+  @Version(VERSION_NEUTRAL)
   @Get('/:id')
   async getProductById(
     @Param('id', MongoIdOrStringValidationPipe) id: string,

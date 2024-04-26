@@ -2,7 +2,7 @@ import { User } from '../user/user.interface';
 
 export interface Product {
   _id?: string;
-  productId?: string;
+  shortId?: string;
   name: string;
   slug?: string;
   verified?: boolean;

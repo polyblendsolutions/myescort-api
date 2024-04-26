@@ -66,8 +66,8 @@ export class ProductService {
         _id: saveData._id,
       };
 
-      const productId = this.utilsService.generateUniqueId(saveData._id.toString());
-      const updateData = await this.productModel.findOneAndUpdate({ _id: saveData._id }, { productId }, { new: true });
+      const shortId = this.utilsService.generateUniqueId(saveData._id.toString());
+      const updateData = await this.productModel.findOneAndUpdate({ _id: saveData._id }, { shortId }, { new: true });
       if (!updateData) {
         this.logger.error('Not able to update!');
         return {
@@ -891,12 +891,20 @@ export class ProductService {
 
   async getProductById(id: string, select: string): Promise<ResponsePayload> {
     try {
-      let data;
-      if(Types.ObjectId.isValid(id)) {
-        data = await this.productModel.findById(id).lean(true).select(select).populate('tags');
-      } else{
-        data = await this.productModel.findOne({ productId: id }).lean(true).select(select).populate('tags');
-      }
+      const data = await this.productModel.findById(id).lean(true).select(select).populate('tags');
+      return {
+        success: true,
+        message: 'Success',
+        data,
+      } as ResponsePayload;
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+  }
+
+  async getProductByShortId(shortId: string, select: string): Promise<ResponsePayload> {
+    try {
+      const data = await this.productModel.findOne({ shortId }).lean(true).select(select).populate('tags');
       return {
         success: true,
         message: 'Success',

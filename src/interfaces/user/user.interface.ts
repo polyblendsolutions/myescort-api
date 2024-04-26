@@ -27,7 +27,7 @@ export interface User {
 
   isVerfied?: boolean;
   verify?: boolean;
-  productId?: string;
+  shortId?: string;
 }
 
 export interface UserAuthResponse {

@@ -527,8 +527,8 @@ export class UserService {
       }
       const data = await this.userModel.findById(id).lean(true).select(select);
 
-      const product = await this.productModel.findOne({ "user._id": id }).lean(true).select("_id productId");
-      data.productId = product? ( product.productId? product.productId: "" ): "";
+      const product = await this.productModel.findOne({ "user._id": id }).lean(true).select("_id shortId");
+      data.shortId = product? ( product.shortId? product.shortId: "" ): "";
 
       return {
         success: true,
