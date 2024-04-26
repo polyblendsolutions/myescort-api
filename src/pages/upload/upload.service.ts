@@ -65,12 +65,16 @@ export class UploadService {
     try {
       const image = sharp(imagePath);
       const imageMetadata = await image.metadata();
+      const width = Math.round(((imageMetadata.width * 80) / 100))
       const watermark = await sharp(watermarkPath)
-      .resize(imageMetadata.width, null, { fit: 'contain' })
+      .resize(width, null, { fit: 'contain' })
         .toBuffer();
-      // Calculate the center coordinates
+      // Calculate the center coordinates for the watermark
+      const watermarkMetadata = await sharp(watermark).metadata();
+      const top = Math.round((imageMetadata.height - watermarkMetadata.height) / 2);
+      const left = Math.round((imageMetadata.width - watermarkMetadata.width) / 2);
       await image
-        .composite([{ input: watermark, blend: 'over', top: imageMetadata.height / 2, left: 0 }])
+        .composite([{ input: watermark, blend: 'over', top: top, left: left }])
         .jpeg()
         .toFile(outputPath);
       return true;
