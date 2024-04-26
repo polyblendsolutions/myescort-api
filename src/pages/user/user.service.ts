@@ -526,7 +526,7 @@ export class UserService {
         select = '-password';
       }
       const data = await this.userModel.findById(id).lean(true).select(select);
-
+      //TODO: refactor in near future by using .populate and adding ref of product in user.
       const product = await this.productModel.findOne({ "user._id": id }).lean(true).select("_id shortId");
       data.shortId = product? ( product.shortId? product.shortId: "" ): "";
 
