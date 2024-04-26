@@ -60,18 +60,7 @@ export class JobSchedulerService {
   //   }
   // }
 
-  findDataBetween12Hours() {
-    const currentDate = new Date(); // Current date and time
-    const from = new Date(currentDate.getTime() - (12 * 60 * 60 * 1000)); // 12 hours before current date
-    const to = currentDate; // Current date
-    const result = this.productModel.find({
-      yourDateField: {
-        $gte: from,
-        $lte: to
-      }
-    });
-  }
-
+ 
   async addOfferScheduleOnStart(
     isNew: boolean,
     id: string,
