@@ -1,12 +1,9 @@
 import * as fs from 'fs';
 
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
-
-import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 import * as sharp from 'sharp';
 
-const waterMarkWidth = 150;
-const waterMarkHeight = 26;
+import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 
 @Injectable()
 export class UploadService {

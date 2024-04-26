@@ -1,9 +1,11 @@
 import { ArgumentMetadata, BadRequestException, Injectable, PipeTransform } from '@nestjs/common';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class MongoIdValidationPipe implements PipeTransform {
   transform(value: string, metadata: ArgumentMetadata) {
-    if (value && value.length === 24) {
+    const isValidObjectId = Types.ObjectId.isValid(value);
+    if (isValidObjectId) {
       return value;
     } else {
       throw new BadRequestException(`"${value}" is an invalid _id`);

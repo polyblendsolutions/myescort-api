@@ -17,7 +17,7 @@ export const ProductSchema = new mongoose.Schema(
       type: Number,
       default: Date.now(),
     },
-    productId: {
+    shortId: {
       type: String,
       required: false,
       trim: false,
