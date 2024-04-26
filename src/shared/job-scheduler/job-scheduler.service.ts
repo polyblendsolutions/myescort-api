@@ -8,6 +8,10 @@ import { PromoOffer } from '../../interfaces/common/promo-offer.interface';
 import { JobScheduler } from '../../interfaces/core/job-scheduler.interface';
 import { DbToolsService } from '../db-tools/db-tools.service';
 import { UtilsService } from '../utils/utils.service';
+import { ProductSchema } from 'src/schema/product.schema';
+import { Product } from 'src/interfaces/common/product.interface';
+// import * as moment from "moment-timezone";
+import { User } from 'src/interfaces/user/user.interface';
 
 @Injectable()
 export class JobSchedulerService {
@@ -21,7 +25,9 @@ export class JobSchedulerService {
     private configService: ConfigService,
     private utilsService: UtilsService,
     private dbToolsService: DbToolsService,
-  ) {}
+    @InjectModel('Product') private readonly productModel: Model<Product>,
+    @InjectModel('User') private readonly userModel: Model<User>,
+  ) { }
 
   /**
    * CORN JOB
@@ -39,7 +45,29 @@ export class JobSchedulerService {
     });
   }
 
-  async addOfferScheduleOnStart(isNew: boolean, id: string, expTime: Date, products: any[], jobId?: string) {
+  // async subscriptionExpireNotification() {
+  //   schedule.scheduleJob('0 12 * * *', async () => {
+  //     this.expireSubscription()
+  //   });
+  // }
+
+  // async expireSubscription() {
+  //   const users = await this.userModel.find().lean(true);
+  //   if(users.length && users.length > 0) {
+  //     for(let value of users) {
+
+  //     }
+  //   }
+  // }
+
+ 
+  async addOfferScheduleOnStart(
+    isNew: boolean,
+    id: string,
+    expTime: Date,
+    products: any[],
+    jobId?: string,
+  ) {
     const jobName = this.configService.get<string>('promoOfferScheduleOnStart');
     let saveJob;
     if (isNew) {

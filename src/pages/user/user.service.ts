@@ -595,7 +595,7 @@ export class UserService {
     const { password, oldPassword } = changePasswordDto;
     let user;
     try {
-      user = await this.userModel.findById(users._id).select('password');
+      user = await this.userModel.findById(users._id).select('password email name');
     } catch (err) {
       throw new InternalServerErrorException();
     }
@@ -613,6 +613,15 @@ export class UserService {
         await this.userModel.findByIdAndUpdate(users._id, {
           $set: { password: hashedPass },
         });
+
+        await this.emailService.sendEmail(
+          user.email,
+          `
+            <h5>Password Change</h5>
+            <p>Hi ${user.name}! Your Password is changed successfully.</p>
+          `,
+        );
+
         return {
           success: true,
           message: 'Password changed success',
@@ -699,8 +708,11 @@ export class UserService {
     }
   }
 
-  async updateUserById(id: string, updateUserDto: UpdateUserDto): Promise<ResponsePayload> {
-    const { newPassword, username } = updateUserDto;
+  async updateUserById(
+    id: string,
+    updateUserDto: UpdateUserDto,
+  ): Promise<ResponsePayload> {
+    const { newPassword, username, isVerfied, comment } = updateUserDto;
     let user;
     try {
       user = await this.userModel.findById(id);
@@ -738,6 +750,17 @@ export class UserService {
           success: true,
           message: 'Data & Password changed success',
         } as ResponsePayload;
+      }
+
+      //check isVerified  
+        if(isVerfied || comment) {
+        await this.emailService.sendEmail(
+          user.email,
+          `
+            <h5>Profile Verification</h5>
+            <p>Hi! Your profile is ${isVerfied ? "verified": `not verified as ${comment}`}.</p>
+          `,
+        );
       }
       // Delete No Action Data
       delete updateUserDto.password;
@@ -824,7 +847,7 @@ export class UserService {
 
     //check if user exists
     try {
-      user = await this.userModel.findById(id);
+      user = await this.userModel.findById(id).select("_id email");
     } catch (err) {
       throw new InternalServerErrorException();
     }
@@ -862,6 +885,15 @@ export class UserService {
           { new: true },
         );
       }
+
+      await this.emailService.sendEmail(
+        user.email,
+        `
+          <h5>Subscription Purchased</h5>
+          <p>Hi ${user.name}!, Your Subscription is active now.</p>
+        `,
+      );
+
       return {
         success: true,
         message: 'Success',

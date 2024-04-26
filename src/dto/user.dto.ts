@@ -160,6 +160,11 @@ export class UpdateUserDto {
   @IsOptional()
   @IsNotEmpty()
   @IsString()
+  comment: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
   @MinLength(5)
   @MaxLength(20)
   password: string;
@@ -170,6 +175,11 @@ export class UpdateUserDto {
   @MinLength(5)
   @MaxLength(20)
   newPassword: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsBoolean()
+  isVerfied: boolean;
 
   @IsOptional()
   @IsOptional()
