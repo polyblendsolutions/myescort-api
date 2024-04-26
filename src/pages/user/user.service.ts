@@ -612,7 +612,7 @@ export class UserService {
         });
 
         await this.emailService.sendEmail(
-          user['email'],
+          user.email,
           `
             <h5>Password Change</h5>
             <p>Hi ${user.name}! Your Password is changed successfully.</p>
@@ -752,7 +752,7 @@ export class UserService {
       //check isVerified  
         if(isVerfied || comment) {
         await this.emailService.sendEmail(
-          user['email'],
+          user.email,
           `
             <h5>Profile Verification</h5>
             <p>Hi! Your profile is ${isVerfied ? "verified": `not verified as ${comment}`}.</p>
@@ -884,9 +884,9 @@ export class UserService {
       }
 
       await this.emailService.sendEmail(
-        user['email'],
+        user.email,
         `
-          <h5>Subscription Bought</h5>
+          <h5>Subscription Purchased</h5>
           <p>Hi ${user.name}!, Your Subscription is active now.</p>
         `,
       );
