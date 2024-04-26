@@ -248,11 +248,7 @@ export class UserController {
   @Version(VERSION_NEUTRAL)
   @Post('/activate-vip/:id')
   @UsePipes(ValidationPipe)
-  @AdminMetaRoles(AdminRoles.SUPER_ADMIN)
-  @UseGuards(AdminRolesGuard)
-  @AdminMetaPermissions(AdminPermissions.DELETE)
-  @UseGuards(AdminPermissionGuard)
-  @UseGuards(AdminJwtAuthGuard)
+  @UseGuards(AuthGuard(PASSPORT_USER_TOKEN_TYPE))
   async activateVIPBadge(
     @Param('id', MongoIdValidationPipe) id: string,
     @Body() data: UpdateUserSubscriptionPlanDto,

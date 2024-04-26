@@ -161,6 +161,16 @@ export class ProductController {
     return await this.productService.getProductByIds(getProductByIdsDto, select);
   }
 
+  //TODO: @Param('id') shortId: string validation pipe needs to be added here for short id validation.
+  @Version(VERSION_NEUTRAL)
+  @Get('/short/:id')
+  async getProductByShortId(
+    @Param('id') shortId: string,
+    @Query() select: string,
+  ): Promise<ResponsePayload> {
+    return await this.productService.getProductByShortId(shortId, select);
+  }
+
   @Version(VERSION_NEUTRAL)
   @Get('/:id')
   async getProductById(
