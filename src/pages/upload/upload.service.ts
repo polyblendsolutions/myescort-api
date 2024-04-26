@@ -62,6 +62,7 @@ export class UploadService {
     try {
       const image = sharp(imagePath);
       const imageMetadata = await image.metadata();
+      // scale/reduce the width of the watermark to 80 % so that it has margin from left and right
       const width = Math.round(((imageMetadata.width * 80) / 100))
       const watermark = await sharp(watermarkPath)
       .resize(width, null, { fit: 'contain' })
