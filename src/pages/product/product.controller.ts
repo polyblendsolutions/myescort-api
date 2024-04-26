@@ -34,7 +34,7 @@ import { AdminRolesGuard } from '../../guards/admin-roles.guard';
 import { UserJwtAuthGuard } from '../../guards/user-jwt-auth.guard';
 import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 import { User } from '../../interfaces/user/user.interface';
-import { MongoIdOrStringValidationPipe, MongoIdValidationPipe } from '../../pipes/mongo-id-validation.pipe';
+import { MongoIdValidationPipe } from '../../pipes/mongo-id-validation.pipe';
 
 @Controller('product')
 export class ProductController {
@@ -161,6 +161,7 @@ export class ProductController {
     return await this.productService.getProductByIds(getProductByIdsDto, select);
   }
 
+  //TODO: @Param('id') shortId: string validation pipe needs to be added here for short id validation.
   @Version(VERSION_NEUTRAL)
   @Get('/short/:id')
   async getProductByShortId(
@@ -173,7 +174,7 @@ export class ProductController {
   @Version(VERSION_NEUTRAL)
   @Get('/:id')
   async getProductById(
-    @Param('id', MongoIdOrStringValidationPipe) id: string,
+    @Param('id', MongoIdValidationPipe) id: string,
     @Query() select: string,
   ): Promise<ResponsePayload> {
     return await this.productService.getProductById(id, select);

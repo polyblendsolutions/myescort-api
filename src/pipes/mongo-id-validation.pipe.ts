@@ -4,22 +4,11 @@ import { Types } from 'mongoose';
 @Injectable()
 export class MongoIdValidationPipe implements PipeTransform {
   transform(value: string, metadata: ArgumentMetadata) {
-    if (value && value.length === 24) {
+    const isValidObjectId = Types.ObjectId.isValid(value);
+    if (isValidObjectId) {
       return value;
     } else {
       throw new BadRequestException(`"${value}" is an invalid _id`);
-    }
-  }
-}
-
-@Injectable()
-export class MongoIdOrStringValidationPipe implements PipeTransform {
-  transform(value: any): string {
-    const isValidObjectId = Types.ObjectId.isValid(value);
-    if (isValidObjectId || typeof value === "string") {
-      return value;
-    } else {
-      throw new BadRequestException('Invalid id parameter. Must be a valid MongoDB ObjectId.');
     }
   }
 }
