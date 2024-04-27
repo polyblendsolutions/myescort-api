@@ -4,6 +4,7 @@ import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common
 import * as sharp from 'sharp';
 
 import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
+const quality = 20;
 
 @Injectable()
 export class UploadService {
@@ -73,7 +74,9 @@ export class UploadService {
       const left = Math.round((imageMetadata.width - watermarkMetadata.width) / 2);
       await image
         .composite([{ input: watermark, blend: 'over', top: top, left: left }])
-        .jpeg()
+        .resize({ fit: 'inside', withoutEnlargement: true })
+        .toFormat('jpeg')
+        .jpeg({ quality: quality })
         .toFile(outputPath);
       return true;
     } catch (error) {
