@@ -16,8 +16,9 @@ export class EmailService {
    *
    * @param email
    * @param body
+   * @param subject
    */
-  async sendEmail(email, body: string): Promise<ResponsePayload> {
+  async sendEmail(email, body: string, subject: string): Promise<ResponsePayload> {
     try {
       const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
       const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -47,10 +48,9 @@ export class EmailService {
       const info = await transporter.sendMail({
         from: `" OG Media" <${emailFrom}>`,
         replyTo: emailFrom,
-        to: toReceiver, //receiver
-        subject: 'Thanks for your Joining', // Subject line
-        // text: "Hello this is text body", // plain text body
-        html: `${body}`, // html body
+        to: toReceiver, 
+        subject: `${subject}`, 
+        html: `${body}`, 
       });
 
       return {
