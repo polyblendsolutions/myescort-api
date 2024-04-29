@@ -75,9 +75,7 @@ export class UploadService {
       const left = Math.round((imageMetadata.width - watermarkMetadata.width) / 2);
       await image
         .composite([{ input: watermark, blend: 'over', top: top, left: left }])
-        // .resize({ fit: 'inside', withoutEnlargement: true })
         .toFormat('jpeg')
-        // .jpeg({ quality: quality })
         .toFile(outputPath);
       await originalCopy.resize({ fit: 'inside', withoutEnlargement: true }).toFormat('jpeg').jpeg({ quality: quality }).toFile(outputPath.replace('images', 'preview'));
       // Delete the original image
