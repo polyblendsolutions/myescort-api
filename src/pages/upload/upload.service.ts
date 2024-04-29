@@ -77,7 +77,10 @@ export class UploadService {
         .composite([{ input: watermark, blend: 'over', top: top, left: left }])
         .toFormat('jpeg')
         .toFile(outputPath);
-      await originalCopy.resize({ fit: 'inside', withoutEnlargement: true }).toFormat('jpeg').jpeg({ quality: quality }).toFile(outputPath.replace('images', 'preview'));
+      await originalCopy.resize({ fit: 'inside', withoutEnlargement: true })
+        .toFormat('jpeg')
+        .jpeg({ quality: quality })
+        .toFile(outputPath.replace('images', 'preview'));
       // Delete the original image
       fs.unlinkSync(imagePath);
       return true;
