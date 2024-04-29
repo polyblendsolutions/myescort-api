@@ -48,7 +48,7 @@ export class EmailService {
         from: `" OG Media" <${emailFrom}>`,
         replyTo: emailFrom,
         to: toReceiver, //receiver
-        subject: 'Thanks for your Joining', // Subject line
+        subject: 'Thank you for joining', // Subject line
         // text: "Hello this is text body", // plain text body
         html: `${body}`, // html body
       });
