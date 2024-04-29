@@ -48,9 +48,9 @@ export class EmailService {
       const info = await transporter.sendMail({
         from: `" OG Media" <${emailFrom}>`,
         replyTo: emailFrom,
-        to: toReceiver, //receiver
-        subject: `${subject}`, // Subject line
-        html: `${body}`, // html body
+        to: toReceiver, 
+        subject: `${subject}`, 
+        html: `${body}`, 
       });
 
       return {
