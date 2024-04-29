@@ -62,6 +62,7 @@ export class UploadService {
   async addWatermark(imagePath: string, watermarkPath: string, outputPath: string) {
     try {
       const image = sharp(imagePath);
+      const originalCopy = await sharp(imagePath);
       const imageMetadata = await image.metadata();
       // scale/reduce the width of the watermark to 80 % so that it has margin from left and right
       const width = Math.round(((imageMetadata.width * 80) / 100))
@@ -74,10 +75,14 @@ export class UploadService {
       const left = Math.round((imageMetadata.width - watermarkMetadata.width) / 2);
       await image
         .composite([{ input: watermark, blend: 'over', top: top, left: left }])
-        .resize({ fit: 'inside', withoutEnlargement: true })
+        .toFormat('jpeg')
+        .toFile(outputPath);
+      await originalCopy.resize({ fit: 'inside', withoutEnlargement: true })
         .toFormat('jpeg')
         .jpeg({ quality: quality })
-        .toFile(outputPath);
+        .toFile(outputPath.replace('images', 'preview'));
+      // Delete the original image
+      fs.unlinkSync(imagePath);
       return true;
     } catch (error) {
       console.error('Error processing image:', error);
