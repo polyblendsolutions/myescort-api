@@ -58,6 +58,7 @@ export class OtpService {
         <h5>Please enter this OTP code for complete registration.</h5>
         <p>Your website otp code is ${code}</p>
         `,
+          'Registration',
         );
         console.log(code);
 
@@ -88,6 +89,7 @@ export class OtpService {
         <h5>Please enter this OTP code for complete registration.</h5>
         <p>Your website otp code is ${code}</p>
         `,
+          'Registration',
         );
 
         console.log(code);
