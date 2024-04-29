@@ -825,8 +825,74 @@ export class UserService {
         await this.emailService.sendEmail(
           user.email,
           `
-            <h5>Profile Verification</h5>
-            <p>Hi! Your profile is ${isVerfied ? "verified": `not verified as ${comment}`}.</p>
+          <body style="margin: 0px;background-color: #f658a8;">
+          <div
+              style="background-color: #fff;background-repeat: no-repeat;background-size: cover;min-height:100vh">
+              <table style="width:100%;margin:0 auto;max-width:660px;">
+                  <tr>
+                      <td style="height:50px" colspan="2"></td>
+                  </tr>
+                  <tr>
+                
+                  <td colspan="2">
+      
+                      <table
+                          style="width:100%;margin: auto;background-color: #fff;padding: 30px;border-radius: 15px; border: 2px solid #f658a8;">
+      
+                              <tr style="text-align: center; background-color: #f658a8;">
+                                  <td
+                                      style="margin: 0px;padding: 40px;font-family:Arial, Helvetica, sans-serif;color:#fff;font-size: 21px;text-align: center;border-radius: 15px;">
+                                      
+                                  <h3
+                                  style="margin: 0px;font-family:Arial, Helvetica, sans-serif;color:#fff;font-size: 21px;text-align: center;">
+                                  Profile Verification</h3>
+                                  </td>
+                              </tr>
+                          
+                          <tr style="height: 20px;">
+                              <td></td>
+                          </tr>
+                          <tr>
+                              <td>
+                                  <p
+                                      style="margin: 0px;font-family:Arial, Helvetica, sans-serif;line-height: 28px;color: #646464;text-align: center;">
+                                      Hi! Your profile is ${isVerfied ? "verified": `not verified as ${comment}`}.
+                                  </p>
+                              </td>
+                          </tr>
+                          <tr style="height: 40px;">
+                              <td></td>
+                          </tr>
+                          <tr style="  height: 20px;">
+                              <td></td>
+                          </tr>
+                          <tr style="background: #f658a8;  height: 1px;">
+                              <td></td>
+                          </tr>
+                          <tr style="  height: 20px;">
+                              <td></td>
+                          </tr>
+                          <tr>
+                              <td>
+                                  <p
+                                      style="margin: 0px;font-family:Arial, Helvetica, sans-serif;font-size: 12px;color: #888888;text-align: center;">
+                                      © Copyright 2022 - 2023 MyEscort. All Rights Reserved</p>
+                              </td>
+                          </tr>
+                          <tr>
+                              <td colspan="1"></td>
+                          </tr>
+                      </table>
+                  </td>
+                  </tr>
+      
+                  <tr>
+                      <td style="height:50px" colspan="2"></td>
+                  </tr>
+              </table>
+      
+          </div>
+      </body>
           `,'Your verification status has been changed'
         );
       }
@@ -957,8 +1023,75 @@ export class UserService {
       await this.emailService.sendEmail(
         user.email,
         `
-          <h5>Subscription Purchased</h5>
-          <p>Hi ${user.name}!, Your Subscription is active now.</p>
+          
+<body style="margin: 0px;background-color: #f658a8;">
+<div
+    style="background-color: #fff;background-repeat: no-repeat;background-size: cover;min-height:100vh">
+    <table style="width:100%;margin:0 auto;max-width:660px;">
+        <tr>
+            <td style="height:50px" colspan="2"></td>
+        </tr>
+        <tr>
+      
+        <td colspan="2">
+
+            <table
+                style="width:100%;margin: auto;background-color: #fff;padding: 30px;border-radius: 15px; border: 2px solid #f658a8;">
+
+                    <tr style="text-align: center; background-color: #f658a8;">
+                        <td
+                            style="margin: 0px;padding: 40px;font-family:Arial, Helvetica, sans-serif;color:#fff;font-size: 21px;text-align: center;border-radius: 15px;">
+                            
+                        <h3
+                        style="margin: 0px;font-family:Arial, Helvetica, sans-serif;color:#fff;font-size: 21px;text-align: center;">
+                        Subscription Purchased</h3>
+                        </td>
+                    </tr>
+                
+                <tr style="height: 20px;">
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>
+                        <p
+                            style="margin: 0px;font-family:Arial, Helvetica, sans-serif;line-height: 28px;color: #646464;text-align: center;">
+                            Hi ${user.username}!, Your Subscription is active now.
+                        </p>
+                    </td>
+                </tr>
+                <tr style="height: 40px;">
+                    <td></td>
+                </tr>
+                <tr style="  height: 20px;">
+                    <td></td>
+                </tr>
+                <tr style="background: #f658a8;  height: 1px;">
+                    <td></td>
+                </tr>
+                <tr style="  height: 20px;">
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>
+                        <p
+                            style="margin: 0px;font-family:Arial, Helvetica, sans-serif;font-size: 12px;color: #888888;text-align: center;">
+                            © Copyright 2022 - 2023 MyEscort. All Rights Reserved</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="1"></td>
+                </tr>
+            </table>
+        </td>
+        </tr>
+
+        <tr>
+            <td style="height:50px" colspan="2"></td>
+        </tr>
+    </table>
+
+</div>
+</body>
         `,'Thank you for purchasing a new subscription'
       );
 
