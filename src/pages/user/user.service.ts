@@ -615,10 +615,11 @@ export class UserService {
         });
 
         await this.emailService.sendEmail(
+
           user.email,
           `
             <h5>Password Change</h5>
-            <p>Hi ${user.name}! Your Password is changed successfully.</p>
+            <p>Hi ${user.username}! Your Password is changed successfully.</p>
           `,
         );
 
