@@ -232,6 +232,11 @@ export class UploadController {
     return res.sendFile(image, { root: './upload/images' });
   }
 
+  @Get('preview/:imageName')
+  seeUploadedPreviewFile(@Param('imageName') image, @Res() res) {
+    return res.sendFile(image, { root: './upload/preview' });
+  }
+
   @Post('delete-single-image')
   deleteSingleFile(@Body('url') url: string, @Req() req): Promise<ResponsePayload> {
     const isProduction = this.configService.get<boolean>('productionBuild');
