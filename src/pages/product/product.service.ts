@@ -41,7 +41,7 @@ export class ProductService {
     private configService: ConfigService,
     private utilsService: UtilsService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  ) { }
 
   /**
    * addProduct
@@ -314,7 +314,7 @@ export class ProductService {
 
       mFilter = { ...mFilter, ...filter };
     }
-
+    mFilter['status'] = { $ne: ListingStatus.Deleted }
     if (searchQuery) {
       mFilter = {
         $and: [
@@ -722,7 +722,7 @@ export class ProductService {
         };
       }
     }
-
+    mFilter['status'] = { $ne: ListingStatus.Deleted }
     // Finalize
     if (Object.keys(mFilter).length) {
       // Main
@@ -1010,7 +1010,7 @@ export class ProductService {
           finalData.slug = this.utilsService.transformToSlug(name, true);
           finalData.quantity = finalData.quantity ? finalData.quantity : 0;
         }
-      if (finalData['status'] === ListingStatus.publish) {
+      if (finalData['status'] === ListingStatus.Publish) {
         finalData['publishDate'] = new Date();
       }
       await this.productModel.findByIdAndUpdate(id, {
@@ -1055,9 +1055,10 @@ export class ProductService {
    * deleteProductById
    * deleteMultipleProductById
    *
-   * @param id
+   * @param {string} id - The unique identifier of the product to be deleted.
+   * @param {string} deletedBy - deletedBy is the id of the admin that deleted that product.
    */
-  async deleteProductById(id: string): Promise<ResponsePayload> {
+  async deleteProductById(id: string, deletedBy: string): Promise<ResponsePayload> {
     let data;
     try {
       data = await this.productModel.findById(id);
@@ -1068,7 +1069,7 @@ export class ProductService {
       throw new NotFoundException('No Data found!');
     }
     try {
-      await this.productModel.findByIdAndDelete(id);
+      await this.productModel.findByIdAndUpdate(id, { status: ListingStatus.Deleted, deletedBy: deletedBy });
 
       // Cache Removed
       await this.cacheManager.del(this.cacheProductPage);
