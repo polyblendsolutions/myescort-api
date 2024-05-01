@@ -571,6 +571,11 @@ export const ProductSchema = new mongoose.Schema(
     publishDate: {
       type: Date,
     },
+    deletedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'Admin',
+      required: false,
+    }
   },
   {
     versionKey: false,

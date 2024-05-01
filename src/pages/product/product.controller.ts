@@ -238,8 +238,8 @@ export class ProductController {
   @AdminMetaPermissions(AdminPermissions.DELETE)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async deleteProductById(@Param('id', MongoIdValidationPipe) id: string): Promise<ResponsePayload> {
-    return await this.productService.deleteProductById(id);
+  async deleteProductById(@Param('id', MongoIdValidationPipe) id: string, @GetTokenUser() user: User): Promise<ResponsePayload> {
+    return await this.productService.deleteProductById(id, user?._id);
   }
 
   @Version(VERSION_NEUTRAL)
