@@ -261,8 +261,8 @@ export class ProductController {
   @AdminMetaPermissions(AdminPermissions.DELETE)
   @UseGuards(AdminPermissionGuard)
   @UseGuards(AdminJwtAuthGuard)
-  async deleteMultipleProductById(@Body() data: { ids: string[] }): Promise<ResponsePayload> {
-    return await this.productService.deleteMultipleProductById(data.ids);
+  async deleteMultipleProductById(@Body() data: { ids: string[] }, @GetTokenUser() user: User): Promise<ResponsePayload> {
+    return await this.productService.deleteMultipleProductById(data.ids, user?._id);
   }
 
   @Version(VERSION_NEUTRAL)

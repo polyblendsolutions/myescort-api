@@ -314,7 +314,7 @@ export class ProductService {
 
       mFilter = { ...mFilter, ...filter };
     }
-    mFilter['status'] = { $ne: ListingStatus.Deleted }
+    mFilter['status'] = { $nin: [ListingStatus.Deleted, ListingStatus.Draft] }
     if (searchQuery) {
       mFilter = {
         $and: [
@@ -1112,9 +1112,18 @@ export class ProductService {
     }
   }
 
-  async deleteMultipleProductById(ids: string[]): Promise<ResponsePayload> {
+  /**
+   * deleteMultipleProductByIds
+   *
+   * @param {string[]} ids - The unique identifiers of the products to be deleted.
+   * @param {string} deletedBy - deletedBy is the id of the admin that deleted that product.
+   */
+  public async deleteMultipleProductById(ids: string[], deletedBy: string): Promise<ResponsePayload> {
     try {
-      await this.productModel.deleteMany({ _id: ids });
+      await this.productModel.updateMany(
+        { _id: { $in: ids } },
+        { $set: { status: ListingStatus.Deleted, deletedBy: deletedBy } }
+      );
 
       // Cache Removed
       await this.cacheManager.del(this.cacheProductPage);
