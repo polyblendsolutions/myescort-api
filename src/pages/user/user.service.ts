@@ -242,7 +242,7 @@ export class UserService {
         await this.cacheManager.del(this.cacheDataCount);
         // email send
         this.emailService.sendEmail(
-          createUserDto.email,
+          createUserDto['email'],
           `<body style="margin: 0px;background-color: #f658a8;">
           <div
               style="background-color: #fff;background-repeat: no-repeat;background-size: cover;min-height:100vh">
