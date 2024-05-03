@@ -5,9 +5,8 @@ export default () => ({
   mongoCluster:
     process.env.PRODUCTION_BUILD === 'true'
       ? `mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@localhost:${process.env.DB_PORT}/${process.env.DB_NAME}?authSource=${process.env.AUTH_SOURCE}`
-      : `mongodb+srv://softlabit:M5LiBL43wpMtrEy9@test-softlab.ptacstn.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`,
+      : `mongodb+srv://og:W1mSxpxqlnpRUK7B@cluster0.piprxp7.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`,
   // mongoCluster: `mongodb://localhost:${process.env.DB_PORT}/${process.env.DB_NAME}`,
-  // mongoCluster: `mongodb+srv://softlabit:M5LiBL43wpMtrEy9@test-softlab.ptacstn.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`,
   userJwtSecret: process.env.JWT_PRIVATE_KEY_USER,
   adminJwtSecret: process.env.JWT_PRIVATE_KEY_ADMIN,
   userTokenExpiredTime: 604800,
