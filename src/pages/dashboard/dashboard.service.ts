@@ -11,6 +11,7 @@ import { Product } from '../../interfaces/common/product.interface';
 import { ResponsePayload } from '../../interfaces/core/response-payload.interface';
 import { User } from '../../interfaces/user/user.interface';
 import { UtilsService } from '../../shared/utils/utils.service';
+import { VerifiedStatus } from 'src/enum/verified-status.enum';
 
 const ObjectId = Types.ObjectId;
 
@@ -26,71 +27,29 @@ export class DashboardService {
     @InjectModel('Product')
     private readonly productModel: Model<Product>,
     @InjectModel('Order')
-    private readonly orderModel: Model<Order>,
+    private readonly orderModel: Model<Product>,
+    @InjectModel('Report')
+    private readonly reportModel: Model<Order>,
     private configService: ConfigService,
     private utilsService: UtilsService,
-  ) {}
+  ) { }
 
   async getAdminDashboard(filterOrderDto: FilterAndPaginationOrderDto, searchQuery?: string): Promise<ResponsePayload> {
     const { filter } = filterOrderDto;
     try {
-      const today = this.utilsService.getDateString(new Date());
-      const nextDay = this.utilsService.getNextDateString(new Date(), 1);
 
-      const monthlyTotalOrders = await this.orderModel.countDocuments({
-        ...filter,
-      });
-      const monthlyPendingOrders = await this.orderModel.countDocuments({
-        orderStatus: 1,
-        ...filter,
-      });
-      const totalPendingOrders = await this.orderModel.countDocuments({
-        orderStatus: 1,
-      });
-      const monthlyConfirmOrders = await this.orderModel.countDocuments({
-        orderStatus: 2,
-        ...filter,
-      });
-      const monthlyProcessingOrders = await this.orderModel.countDocuments({
-        orderStatus: 3,
-        ...filter,
-      });
-      const monthlyShippingOrders = await this.orderModel.countDocuments({
-        orderStatus: 4,
-        ...filter,
-      });
-      const monthlyDeliveredOrders = await this.orderModel.countDocuments({
-        orderStatus: 5,
-        ...filter,
-      });
-      const monthlyCancelOrders = await this.orderModel.countDocuments({
-        orderStatus: 6,
-        ...filter,
-      });
-      const monthlyRefundOrders = await this.orderModel.countDocuments({
-        orderStatus: 7,
-        ...filter,
-      });
-      const countTodayAddedOrder = await this.orderModel.countDocuments({
-        createdAt: { $gte: new Date(today), $lt: new Date(nextDay) },
-      });
-      const totalOrders = await this.orderModel.countDocuments();
-
-      const totalProducts = await this.productModel.countDocuments({});
+      const totalProducts = await this.productModel.countDocuments({ isDeleted: false });
+      const totalUsers = await this.userModel.countDocuments({ hasAccess: true });
+      const awaitingVerification = await this.userModel.countDocuments({ verifiedStatus: VerifiedStatus.Pending });
+      const newReport = await this.reportModel.countDocuments({ status: false });
+      const vipUsers = await this.userModel.countDocuments({ subscriptionId: { $ne: null } })
 
       const data = {
-        totalOrders,
-        totalPendingOrders,
-        countTodayAddedOrder,
         totalProducts,
-        monthlyTotalOrders,
-        monthlyPendingOrders,
-        monthlyConfirmOrders,
-        monthlyProcessingOrders,
-        monthlyShippingOrders,
-        monthlyDeliveredOrders,
-        monthlyCancelOrders,
-        monthlyRefundOrders,
+        totalUsers,
+        awaitingVerification,
+        newReport,
+        vipUsers
       };
 
       return {

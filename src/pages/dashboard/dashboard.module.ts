@@ -7,6 +7,7 @@ import { AdminSchema } from '../../schema/admin.schema';
 import { OrderSchema } from '../../schema/order.schema';
 import { ProductSchema } from '../../schema/product.schema';
 import { UserSchema } from '../../schema/user.schema';
+import { ReportSchema } from '../../schema/report.schema';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { UserSchema } from '../../schema/user.schema';
       { name: 'User', schema: UserSchema },
       { name: 'Product', schema: ProductSchema },
       { name: 'Order', schema: OrderSchema },
+      { name: 'Report', schema: ReportSchema },
     ]),
   ],
   providers: [DashboardService],
