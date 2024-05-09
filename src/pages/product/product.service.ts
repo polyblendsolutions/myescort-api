@@ -349,8 +349,9 @@ export class ProductService {
     // Sort
     if (sort) {
       mSort = sort;
+      mSort['bumpDate'] = -1;
     } else {
-      mSort = { createdAt: -1 };
+      mSort = { bumpDate: -1 };
     }
     // Select
     if (select) {
@@ -1017,6 +1018,35 @@ export class ProductService {
         $set: finalData,
       });
 
+      return {
+        success: true,
+        message: 'Success',
+      } as ResponsePayload;
+    } catch (err) {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  /**
+   * bumpProductById
+   *
+   * @param user
+   * @param id
+   */
+  async bumpProductById(user: User, id: string): Promise<ResponsePayload> {
+    let data;
+    try {
+      data = await this.productModel.findOne({ _id: id, 'user._id': user._id });
+    } catch (err) {
+      throw new InternalServerErrorException(err.message);
+    }
+    if (!data) {
+      throw new NotFoundException('No listing found!');
+    }
+    try {
+      await this.productModel.findByIdAndUpdate(id, {
+        $set: { bumpDate: new Date() },
+      });
       return {
         success: true,
         message: 'Success',

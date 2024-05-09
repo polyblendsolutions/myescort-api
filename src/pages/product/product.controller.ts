@@ -212,6 +212,20 @@ export class ProductController {
     return await this.productService.updateUserProductById(user, id, updateProductDto);
   }
 
+  /**
+  * bumpProductById
+  */
+  @Version(VERSION_NEUTRAL)
+  @Put('/bump-by-user/:id')
+  @UsePipes(ValidationPipe)
+  @UseGuards(UserJwtAuthGuard)
+  async bumpProductById(
+    @GetTokenUser() user: User,
+    @Param('id', MongoIdValidationPipe) id: string,
+  ): Promise<ResponsePayload> {
+    return await this.productService.bumpProductById(user, id);
+  }
+
   @Version(VERSION_NEUTRAL)
   @Put('/update-multiple')
   @UsePipes(ValidationPipe)
