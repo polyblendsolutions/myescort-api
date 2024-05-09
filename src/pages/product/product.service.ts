@@ -232,10 +232,11 @@ export class ProductService {
    *
    * @param filterProductDto
    * @param searchQuery
+   * @param isUser
    */
   async getAllProducts(
     filterProductDto: FilterAndPaginationProductDto,
-    searchQuery?: string,
+    searchQuery?: string
   ): Promise<ResponsePayload> {
     const { filter } = filterProductDto;
     const { pagination } = filterProductDto;
@@ -275,46 +276,37 @@ export class ProductService {
     let mSort = {};
     let mSelect = {};
     let mPagination = {};
-
+    let statusList = [ListingStatus.Deleted, ListingStatus.Draft]
     // Modify Id as Object ID
     // Match
     if (filter) {
-      if (filter && filter['user._id']) {
-        filter['user._id'] = new ObjectId(filter['user._id']);
-      }
+      const keysToConvert = ['category._id', 'subCategory._id', 'brand._id', 'publisher._id', 'tags._id'];
+      // Convert specified keys to ObjectId
+      keysToConvert.forEach((key) => {
+        if (filter[key]) {
+          filter[key] = new ObjectId(filter[key]);
+        }
+      });
 
-      if (filter && filter['category._id']) {
-        filter['category._id'] = new ObjectId(filter['category._id']);
-      }
-
-      if (filter && filter['subCategory._id']) {
-        filter['subCategory._id'] = new ObjectId(filter['subCategory._id']);
-      }
-
-      if (filter && filter['brand._id']) {
-        filter['brand._id'] = new ObjectId(filter['brand._id']);
-      }
-      if (filter && filter['publisher._id']) {
-        filter['publisher._id'] = new ObjectId(filter['publisher._id']);
-      }
-
-      if (filter && filter['tags._id']) {
-        filter['tags._id'] = new ObjectId(filter['tags._id']);
-      }
-
-      if (filter && filter['showExpired']) {
+      if (filter['showExpired']) {
         showExpired = filter['showExpired'];
         delete filter['showExpired'];
       }
 
-      if (filter && filter['createdAt']) {
+      if (filter['createdAt']) {
         filter['createdAt']['$gte'] = new Date(filter['createdAt']['$gte']);
         filter['createdAt']['$lte'] = new Date(filter['createdAt']['$lte']);
       }
 
+      if (filter['user._id']) {
+        filter['user._id'] = new ObjectId(filter['user._id']);
+        // It will not remove delete ads from the listing 
+        statusList = [ListingStatus.Deleted]
+      }
+
       mFilter = { ...mFilter, ...filter };
     }
-    mFilter['status'] = { $nin: [ListingStatus.Deleted, ListingStatus.Draft] }
+    mFilter['status'] = { $nin: statusList }
     if (searchQuery) {
       mFilter = {
         $and: [
@@ -615,12 +607,12 @@ export class ProductService {
 
       // Convert specified keys to ObjectId
       keysToConvert.forEach((key) => {
-        if (filter && filter[key]) {
+        if (filter[key]) {
           filter[key] = new ObjectId(filter[key]);
         }
       });
 
-      if (filter && filter['createdAt']) {
+      if (filter['createdAt']) {
         filter['createdAt']['$gte'] = new Date(filter['createdAt']['$gte']);
         filter['createdAt']['$lte'] = new Date(filter['createdAt']['$lte']);
       }
