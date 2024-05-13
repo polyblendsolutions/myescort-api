@@ -293,8 +293,9 @@ export class ProductService {
         delete filter['showExpired'];
       }
 
-      if(!filter['isVipStatusActive']){
+      if(filter['nonVIp']){
         filter['isVipStatusActive'] = { $exists: false }
+        delete filter['nonVIp']
       }
 
       if (filter['createdAt']) {
