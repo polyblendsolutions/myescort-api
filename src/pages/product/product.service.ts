@@ -293,6 +293,10 @@ export class ProductService {
         delete filter['showExpired'];
       }
 
+      if(!filter['isVipStatusActive']){
+        filter['isVipStatusActive'] = { $exists: false }
+      }
+
       if (filter['createdAt']) {
         filter['createdAt']['$gte'] = new Date(filter['createdAt']['$gte']);
         filter['createdAt']['$lte'] = new Date(filter['createdAt']['$lte']);
