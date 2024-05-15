@@ -41,7 +41,7 @@ import { ProfileModule } from './pages/profile/profile/profile.module';
 import { ReportModule } from './pages/report/report.module';
 import { ReviewModule } from './pages/review/review.module';
 import { OrderModule } from './pages/sales/order/order.module';
-import { ShippingChargeModule } from './pages/sales/shipping-charge/shipping-charge.module';
+import { SubscriptionModule } from './pages/subscriptions/subscription.module';
 import { UploadModule } from './pages/upload/upload.module';
 import { UserModule } from './pages/user/user.module';
 import { VerifiedModule } from './pages/verified/verified.module';
@@ -50,7 +50,6 @@ import { DbToolsModule } from './shared/db-tools/db-tools.module';
 import { EmailModule } from './shared/email/email.module';
 import { JobSchedulerModule } from './shared/job-scheduler/job-scheduler.module';
 import { UtilsModule } from './shared/utils/utils.module';
-import { SubscriptionModule } from './pages/subscriptions/subscription.module';
 
 @Module({
   imports: [
@@ -82,7 +81,6 @@ import { SubscriptionModule } from './pages/subscriptions/subscription.module';
     ReviewModule,
     ProfileModule,
     OrderModule,
-    ShippingChargeModule,
     CouponModule,
     AdditionalPageModule,
     BrandModule,
@@ -105,7 +103,7 @@ import { SubscriptionModule } from './pages/subscriptions/subscription.module';
     EmailModule,
     OtpModule,
     ReportModule,
-    SubscriptionModule
+    SubscriptionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
