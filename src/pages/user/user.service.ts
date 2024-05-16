@@ -14,6 +14,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Cache } from 'cache-manager';
 import { Model, Types } from 'mongoose';
+import { VerifiedStatus } from 'src/enum/verified-status.enum';
+import { Product } from 'src/interfaces/common/product.interface';
+import { Subscription } from 'src/interfaces/common/subscription.interface';
 
 import { ChangePasswordDto } from '../../dto/change-password.dto';
 import {
@@ -37,9 +40,6 @@ import { User, UserAuthResponse, UserJwtPayload } from '../../interfaces/user/us
 import { EmailService } from '../../shared/email/email.service';
 import { UtilsService } from '../../shared/utils/utils.service';
 import { OtpService } from '../otp/otp.service';
-import { Subscription } from 'src/interfaces/common/subscription.interface';
-import { Product } from 'src/interfaces/common/product.interface';
-import { VerifiedStatus } from 'src/enum/verified-status.enum';
 
 const ObjectId = Types.ObjectId;
 
@@ -60,7 +60,7 @@ export class UserService {
     private emailService: EmailService,
     private otpService: OtpService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) { }
+  ) {}
 
   /**
    * User Signup
@@ -87,7 +87,8 @@ export class UserService {
         createUserDto['email'],
         `
         <h1>we are checking...</h1>
-        `,'Thank you for joining'
+        `,
+        'Thank you for joining',
       );
 
       return {
@@ -311,7 +312,8 @@ export class UserService {
       
           </div>
       </body>
-        `,'Registration'
+        `,
+          'Registration',
         );
 
         return this.userLogin(authUserDto);
@@ -591,8 +593,8 @@ export class UserService {
       }
       const data = await this.userModel.findById(id).lean(true).select(select);
       //TODO: refactor in near future by using .populate and adding ref of product in user.
-      const product = await this.productModel.findOne({ "user._id": id }).lean(true).select("_id shortId");
-      data.shortId = product? ( product.shortId? product.shortId: "" ): "";
+      const product = await this.productModel.findOne({ 'user._id': id }).lean(true).select('_id shortId');
+      data.shortId = product ? (product.shortId ? product.shortId : '') : '';
 
       return {
         success: true,
@@ -659,7 +661,7 @@ export class UserService {
     const { password, oldPassword } = changePasswordDto;
     let user;
     try {
-      user = await this.userModel.findById(users._id).select('password email name');
+      user = await this.userModel.findById(users._id).select('password email username');
     } catch (err) {
       throw new InternalServerErrorException();
     }
@@ -679,7 +681,6 @@ export class UserService {
         });
 
         await this.emailService.sendEmail(
-
           user.email,
           `
           <body style="margin: 0px;background-color: #f658a8;">
@@ -713,7 +714,7 @@ export class UserService {
                               <td>
                                   <p
                                       style="margin: 0px;font-family:Arial, Helvetica, sans-serif;line-height: 28px;color: #646464;text-align: center;">
-                                      Hi ${user.username}! Your Password is changed successfully.
+                                      Hi ${user.username ?? ''}! Your Password is changed successfully.
                                   </p>
                               </td>
                           </tr>
@@ -751,7 +752,7 @@ export class UserService {
           </div>
       </body>
           `,
-          'Your password has been changed'
+          'Your password has been changed',
         );
 
         return {
@@ -840,10 +841,7 @@ export class UserService {
     }
   }
 
-  async updateUserById(
-    id: string,
-    updateUserDto: UpdateUserDto,
-  ): Promise<ResponsePayload> {
+  async updateUserById(id: string, updateUserDto: UpdateUserDto): Promise<ResponsePayload> {
     const { newPassword, username, isVerfied, comment } = updateUserDto;
     let user;
     try {
@@ -884,8 +882,8 @@ export class UserService {
         } as ResponsePayload;
       }
 
-      //check isVerified  
-        if(isVerfied || comment) {
+      //check isVerified
+      if (isVerfied || comment) {
         await this.emailService.sendEmail(
           user.email,
           `
@@ -920,7 +918,7 @@ export class UserService {
                               <td>
                                   <p
                                       style="margin: 0px;font-family:Arial, Helvetica, sans-serif;line-height: 28px;color: #646464;text-align: center;">
-                                      Hi! Your profile is ${isVerfied ? "verified": `not verified as ${comment}`}.
+                                      Hi! Your profile is ${isVerfied ? 'verified' : `not verified as ${comment}`}.
                                   </p>
                               </td>
                           </tr>
@@ -957,15 +955,19 @@ export class UserService {
       
           </div>
       </body>
-          `,'Your verification status has been changed'
+          `,
+          'Your verification status has been changed',
         );
       }
       // Delete No Action Data
       delete updateUserDto.password;
       if (updateUserDto['isVerfied'] && updateUserDto['verifiedStatus'] === VerifiedStatus.Verified) {
-        const product = await this.productModel.updateMany({ ['user._id']: id }, {
-          $set: { 'user.isVerfied': true }
-        })
+        const product = await this.productModel.updateMany(
+          { ['user._id']: id },
+          {
+            $set: { 'user.isVerfied': true },
+          },
+        );
       }
       await this.userModel.findByIdAndUpdate(id, {
         $set: updateUserDto,
@@ -1045,7 +1047,7 @@ export class UserService {
 
     //check if user exists
     try {
-      user = await this.userModel.findById(id).select("_id email");
+      user = await this.userModel.findById(id).select('_id email username');
     } catch (err) {
       throw new InternalServerErrorException();
     }
@@ -1119,7 +1121,7 @@ export class UserService {
                     <td>
                         <p
                             style="margin: 0px;font-family:Arial, Helvetica, sans-serif;line-height: 28px;color: #646464;text-align: center;">
-                            Hi ${user.username}!, Your Subscription is active now.
+                            Hi ${user.username ?? ''}!, Your Subscription is active now.
                         </p>
                     </td>
                 </tr>
@@ -1156,7 +1158,8 @@ export class UserService {
 
 </div>
 </body>
-        `,'Thank you for purchasing a new subscription'
+        `,
+        'Thank you for purchasing a new subscription',
       );
 
       return {
