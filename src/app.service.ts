@@ -9,6 +9,7 @@ export class AppService {
   constructor(private jobSchedulerService: JobSchedulerService, private dbToolsService: DbToolsService) {
     this.jobSchedulerService.reAddScheduler();
     this.jobSchedulerService.autoBackupDatabaseToDrive();
+    this.jobSchedulerService.productListingExpirationNotificationTrigger();
   }
 
   /**

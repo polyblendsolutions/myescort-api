@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as schedule from 'node-schedule';
-
 import { PromoOffer } from '../../interfaces/common/promo-offer.interface';
 import { JobScheduler } from '../../interfaces/core/job-scheduler.interface';
 import { DbToolsService } from '../db-tools/db-tools.service';
@@ -12,6 +11,7 @@ import { ProductSchema } from 'src/schema/product.schema';
 import { Product } from 'src/interfaces/common/product.interface';
 // import * as moment from "moment-timezone";
 import { User } from 'src/interfaces/user/user.interface';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class JobSchedulerService {
@@ -27,7 +27,8 @@ export class JobSchedulerService {
     private dbToolsService: DbToolsService,
     @InjectModel('Product') private readonly productModel: Model<Product>,
     @InjectModel('User') private readonly userModel: Model<User>,
-  ) { }
+    private emailService: EmailService,
+  ) {}
 
   /**
    * CORN JOB
@@ -60,14 +61,7 @@ export class JobSchedulerService {
   //   }
   // }
 
- 
-  async addOfferScheduleOnStart(
-    isNew: boolean,
-    id: string,
-    expTime: Date,
-    products: any[],
-    jobId?: string,
-  ) {
+  async addOfferScheduleOnStart(isNew: boolean, id: string, expTime: Date, products: any[], jobId?: string) {
     const jobName = this.configService.get<string>('promoOfferScheduleOnStart');
     let saveJob;
     if (isNew) {
@@ -159,5 +153,119 @@ export class JobSchedulerService {
         }
       }
     }
+  }
+
+  async productListingExpirationNotificationTrigger() {
+    console.log('### BEGIN:Product listing exipiration notification ###');
+
+    // schedule.scheduleJob('00 00 14 * * 0-6', async (fireDate) => {
+    schedule.scheduleJob('* */5 * * * *', async (fireDate) => {
+      console.log('### BEGIN:Product listing exipiration notification ###');
+      console.log('Scheduled at: ', fireDate);
+      console.log('Scheduled at: ', new Date());
+
+      const MILISECONDS_IN_DAY = 24 * 60 * 60 * 1000;
+      const daysGap = 7;
+      const now = new Date();
+      const targetDate = new Date(now);
+      targetDate.setDate(now.getDate() - daysGap);
+
+      console.log(' === comparision for publish date === ', {
+        $gte: targetDate,
+        $lt: new Date(targetDate.getTime() + MILISECONDS_IN_DAY), // Ensures the range includes only the 29th day
+      });
+      const products = await this.productModel
+        .find({
+          publishDate: {
+            $gte: targetDate,
+            $lt: new Date(targetDate.getTime() + MILISECONDS_IN_DAY), // Ensures the range includes only the 29th day
+          },
+        })
+        .exec();
+      console.log(' === product count === ', products.length);
+      console.log(
+        ' === product users === ',
+        products?.map((e) => ({ [e?.id]: { ...e?.user } })),
+      );
+      products?.map((e) => {
+        this.emailService.sendEmail(
+          e?.user?.email,
+          `
+        
+<body style="margin: 0px;background-color: #f658a8;">
+<div
+    style="background-color: #fff;background-repeat: no-repeat;background-size: cover;min-height:100vh">
+    <table style="width:100%;margin:0 auto;max-width:660px;">
+        <tr>
+            <td style="height:50px" colspan="2"></td>
+        </tr>
+        <tr>
+      
+        <td colspan="2">
+
+            <table
+                style="width:100%;margin: auto;background-color: #fff;padding: 30px;border-radius: 15px; border: 2px solid #f658a8;">
+
+                    <tr style="text-align: center; background-color: #f658a8;">
+                        <td
+                            style="margin: 0px;padding: 40px;font-family:Arial, Helvetica, sans-serif;color:#fff;font-size: 21px;text-align: center;border-radius: 15px;">
+                            
+                        <h3
+                        style="margin: 0px;font-family:Arial, Helvetica, sans-serif;color:#fff;font-size: 21px;text-align: center;">
+                        Product Expiring Soon</h3>
+                        </td>
+                    </tr>
+                
+                <tr style="height: 20px;">
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>
+                        <p
+                            style="margin: 0px;font-family:Arial, Helvetica, sans-serif;line-height: 28px;color: #646464;text-align: center;">
+                            Your listing <a href='${process.env.CLIENT_DOMAIN}/ad-details/${e.id}}'>${e.name}</a> is expiring in a day.
+                        </p>
+                    </td>
+                </tr>
+                <tr style="height: 40px;">
+                    <td></td>
+                </tr>
+                <tr style="  height: 20px;">
+                    <td></td>
+                </tr>
+                <tr style="background: #f658a8;  height: 1px;">
+                    <td></td>
+                </tr>
+                <tr style="  height: 20px;">
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>
+                        <p
+                            style="margin: 0px;font-family:Arial, Helvetica, sans-serif;font-size: 12px;color: #888888;text-align: center;">
+                            © Copyright 2022 - 2023 MyEscort. All Rights Reserved</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="1"></td>
+                </tr>
+            </table>
+        </td>
+        </tr>
+
+        <tr>
+            <td style="height:50px" colspan="2"></td>
+        </tr>
+    </table>
+
+</div>
+</body>
+        `,
+          'Your listing expires soon',
+        );
+      });
+
+      console.log('### END:Product listing exipiration notification ###');
+    });
   }
 }
