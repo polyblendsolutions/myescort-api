@@ -54,6 +54,7 @@ export class UserService {
     @InjectModel('User') private readonly userModel: Model<User>,
     @InjectModel('Subscriptions') private readonly subscriptionModel: Model<Subscription>,
     @InjectModel('Products') private readonly productModel: Model<Product>,
+    @InjectModel('UserSubscriptions') private readonly userSubscriptionsModel: Model<User>,
     protected jwtService: JwtService,
     private configService: ConfigService,
     private utilsService: UtilsService,
@@ -410,6 +411,24 @@ export class UserService {
         select = '-password';
       }
       const data = await this.userModel.findById(user._id).select(select);
+      return {
+        data,
+        success: true,
+      } as ResponsePayload;
+    } catch (err) {
+      this.logger.error(`${user.username} is failed to retrieve data`);
+      throw new InternalServerErrorException();
+    }
+  }
+
+  /**
+   * User Subscription Info
+   *
+   * @param user
+   */
+  async getUserSubscription(user: User): Promise<ResponsePayload> {
+    try {
+      const data = await this.userSubscriptionsModel.find({ userId: user._id }).populate('subscriptionId');
       return {
         data,
         success: true,
@@ -1065,22 +1084,21 @@ export class UserService {
       throw new NotFoundException('No subscription found!');
     }
     try {
-      await this.userModel.findByIdAndUpdate(
-        id,
-        {
-          $set: { subscriptionId },
-        },
-        { new: true },
-      );
+      const newSubscription = new this.userSubscriptionsModel({ userId: user._id, subscriptionId: subscriptionId });
+      const saveData = await newSubscription.save();
       const latestPublishedProduct = await this.productModel
         .findOne({ 'user._id': id }, { status: 'publish' })
         .lean(true)
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 }).select('status vipStatusExpiredOn');;
       if (latestPublishedProduct) {
+        const vipStatusActivatedOn = new Date();
+        const vipExpiredOn = latestPublishedProduct['vipStatusExpiredOn']
+        const vipStatusExpiredOn = vipExpiredOn ? (new Date(vipExpiredOn) >= new Date()) ? vipExpiredOn : new Date() : new Date();
+        vipStatusExpiredOn.setDate(vipStatusExpiredOn.getDate() + subscription.days);
         await this.productModel.findOneAndUpdate(
           { _id: latestPublishedProduct._id },
           {
-            $set: { isVipStatusActive: true, vipStatusActivatedOn: Date.now() },
+            $set: { isVipStatusActive: true, vipStatusActivatedOn: vipStatusActivatedOn, vipStatusExpiredOn: vipStatusExpiredOn },
           },
           { new: true },
         );

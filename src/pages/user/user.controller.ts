@@ -109,6 +109,20 @@ export class UserController {
   }
 
   /**
+   * User Subscription Info
+   *
+   * @param user
+   */
+  @Version(VERSION_NEUTRAL)
+  @Get('/subscription-list')
+  @UseGuards(AuthGuard(PASSPORT_USER_TOKEN_TYPE))
+  async getUserSubscription(
+    @GetUser() user: User,
+  ): Promise<ResponsePayload> {
+    return this.usersService.getUserSubscription(user);
+  }
+
+  /**
    * Get All Users (Not Recommended)
    * Get All Users V1 (Filter, Pagination, Select)
    * Get All Users V2 (Filter, Pagination, Select, Sort, Search Query)

@@ -152,13 +152,7 @@ export const UserSchema = new mongoose.Schema(
         type: Schema.Types.ObjectId,
         ref: 'Coupon',
       },
-    ],
-    subscriptionId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Subscription',
-      default: null,
-      required: false,
-    },
+    ]
   },
   {
     versionKey: false,

@@ -14,8 +14,10 @@ export const ProductSchema = new mongoose.Schema(
       default: false,
     },
     vipStatusActivatedOn: {
-      type: Number,
-      default: Date.now(),
+      type: Date
+    },
+    vipStatusExpiredOn: {
+      type: Date
     },
     shortId: {
       type: String,
