@@ -247,7 +247,7 @@ export class CarouselService {
       const data = await this.carouselModel.findById(id).select(select);
       return {
         success: true,
-        message: 'Single contact get Successfully',
+        message: 'Single contact get Successfully', //TODO: Rename
         data,
       } as ResponsePayload;
     } catch (err) {
@@ -421,7 +421,7 @@ export class CarouselService {
       } else {
         return {
           success: false,
-          message: 'Sorry! Invalid contact code',
+          message: 'Sorry! Invalid contact code', // TODO: Rename
           data: null,
         } as ResponsePayload;
       }

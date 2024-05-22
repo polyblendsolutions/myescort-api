@@ -24,8 +24,6 @@ import { RegionModule } from './pages/catalog/region/region.module';
 import { SubCategoryModule } from './pages/catalog/sub-category/sub-category.module';
 import { TagModule } from './pages/catalog/tag/tag.module';
 import { TypeModule } from './pages/catalog/type/type.module';
-import { ContactModule } from './pages/contact/contact/contact.module';
-import { NewsletterModule } from './pages/contact/newsletter/newsletter.module';
 import { BannerCaroselModule } from './pages/customization/banner/banner-carosel.module';
 import { CarouselModule } from './pages/customization/carousel/carousel.module';
 import { DashboardModule } from './pages/dashboard/dashboard.module';
@@ -75,8 +73,6 @@ import { UtilsModule } from './shared/utils/utils.module';
     PublisherModule,
     AuthorModule,
     BlogModule,
-    ContactModule,
-    NewsletterModule,
     TagModule,
     ReviewModule,
     ProfileModule,

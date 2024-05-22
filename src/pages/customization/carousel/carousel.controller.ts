@@ -182,6 +182,7 @@ export class CarouselController {
     return await this.carouselService.deleteMultipleCarouselById(data.ids, Boolean(checkUsage));
   }
 
+  // TODO: Rename to check-carousel-availability
   @Post('/check-contact-availability')
   @UsePipes(ValidationPipe)
   @UseGuards(UserJwtAuthGuard)
